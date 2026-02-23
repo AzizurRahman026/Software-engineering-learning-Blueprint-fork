@@ -23,7 +23,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddAuthentication();
 
 // Register the background service
-builder.Services.AddHostedService<HeartbitTestJob>();
+// builder.Services.AddHostedService<HeartbitTestJob>();
 
 var app = builder.Build();
 app.UseCors("AllowAngular");
