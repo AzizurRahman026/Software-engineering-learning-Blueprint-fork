@@ -2,6 +2,7 @@
 using Application.Features.Chapters.Commands.CreateChapter;
 using Application.Features.Chapters.Query.GetChaptersBySubjectId;
 using Application.Features.Courses.DTOs;
+using Application.Features.Courses.Query.GetCourseById;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -69,20 +70,12 @@ public class ChaptersController : ControllerBase
     [HttpGet("subject/{subjectId}")]
     public async Task<ActionResult<IEnumerable<ChapterResponseDto>>> GetChaptersBySubject(string subjectId)
     {
-        var query = new GetChaptersBySubjectIdQuery();
+        var query = new GetChaptersBySubjectIdQuery
+        {
+            SubjectId = subjectId
+        };
         var response = await _messageBus.SendAsync<GetChaptersBySubjectIdQuery, List<ChapterResponseDto>>(query);
         return Ok(response);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Chapter>> GetChapterById(string id)
-    {
-        var chapter = chapters.FirstOrDefault(c => c.Id == id);
-
-        if (chapter == null)
-            return NotFound();
-
-        return Ok(chapter);
     }
 
     [HttpPost]

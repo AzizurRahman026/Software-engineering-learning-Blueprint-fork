@@ -3,6 +3,7 @@ using Application.Features.Courses.Commands.CreateCourse;
 using Application.Features.Courses.Commands.DeleteCourse;
 using Application.Features.Courses.DTOs;
 using Application.Features.Courses.Query.GetAllCourses;
+using Application.Features.Courses.Query.GetCourseById;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -90,8 +91,12 @@ public class CourseController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<CourseResponseDto>> GetSubject(string id)
     {
-        var subject = subjects.Where(s => s.Id == id).FirstOrDefault();
-        return Ok(subject);
+        var query = new GetCourseByIdQuery
+        {
+            CourseId = id
+        };
+        var response = await _messageBus.SendAsync<GetCourseByIdQuery, CourseResponseDto>(query);
+        return Ok(response);
     }
 
     // POST: api/Subjects

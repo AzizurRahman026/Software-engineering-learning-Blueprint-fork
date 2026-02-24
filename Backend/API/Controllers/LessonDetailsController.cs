@@ -1,6 +1,7 @@
 ﻿using Application.Common.Interfaces.Publisher;
 using Application.Features.Chapters.Commands.CreateLessonDetails;
 using Application.Features.Chapters.DTOs;
+using Application.Features.Lessons.Query.GetLessonDetailsByLessonId;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,19 +20,12 @@ public class LessonDetailsController : ControllerBase
     [HttpGet("{subjectId}/lesson/{lessonId}")]
     public async Task<ActionResult<LessonDetails>> GetLessonDetailsByLessonId(string subjectId, string lessonId)
     {
-        var lessonDetails = new LessonDetails
+        var query = new GetLessonDetailsByLessonIdQuery
         {
-            Id = "1",
-            LessonId = lessonId,
-            Title = "Introduction to Linear Equations",
-            Description = "Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them Learn the fundamentals of linear equations and how to solve them .",
-            ReferenceUrls = new List<string>
-            {
-                "https://example.com/linear-equations",
-                "https://example.com/algebra-basics"
-            }
+            LessonId = lessonId
         };
-
+        var lessonDetails = await _messageBus.SendAsync<GetLessonDetailsByLessonIdQuery, LessonDetailsDto>(query);
+        
         if (lessonDetails == null)
             return NotFound();
 
