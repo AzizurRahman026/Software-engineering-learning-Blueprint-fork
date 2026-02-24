@@ -1,4 +1,7 @@
-﻿using Application.Features.Courses.DTOs;
+﻿using Application.Common.Interfaces.Publisher;
+using Application.Features.Chapters.Commands.CreateChapter;
+using Application.Features.Chapters.Query.GetChaptersBySubjectId;
+using Application.Features.Courses.DTOs;
 using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +11,11 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class ChaptersController : ControllerBase
 {
+    private readonly IMessageBus _messageBus;
+    public ChaptersController(IMessageBus messageBus)
+    {
+        _messageBus = messageBus;
+    }
     List<Chapter> chapters = new()
     {
         new Chapter {
@@ -51,10 +59,7 @@ public class ChaptersController : ControllerBase
             }
         }
     };
-    public ChaptersController()
-    {
-        
-    }
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Chapter>>> GetAllChapters()
     {
@@ -62,11 +67,11 @@ public class ChaptersController : ControllerBase
     }
 
     [HttpGet("subject/{subjectId}")]
-    public async Task<ActionResult<IEnumerable<Chapter>>> GetChaptersBySubject(string subjectId)
+    public async Task<ActionResult<IEnumerable<ChapterResponseDto>>> GetChaptersBySubject(string subjectId)
     {
-        // Replace with actual service call
-        var newChapters = chapters.Where(c => c.SubjectId == subjectId).ToList();
-        return Ok(newChapters);
+        var query = new GetChaptersBySubjectIdQuery();
+        var response = await _messageBus.SendAsync<GetChaptersBySubjectIdQuery, List<ChapterResponseDto>>(query);
+        return Ok(response);
     }
 
     [HttpGet("{id}")]
@@ -79,13 +84,14 @@ public class ChaptersController : ControllerBase
 
         return Ok(chapter);
     }
+
     [HttpPost]
-    public async Task<ActionResult<Chapter>> CreateChapter([FromBody] ChapterDto chapter)
+    public async Task<ActionResult> CreateChapter([FromBody] ChapterDto chapter)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
-        //chapter = Guid.NewGuid().ToString();
+        var command = chapter.ToCreateChapterCommand();
+        await _messageBus.SendAsync<CreateChapterCommand>(command);
         return Created();
     }
 

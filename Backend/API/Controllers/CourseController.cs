@@ -1,5 +1,6 @@
 ﻿using Application.Common.Interfaces.Publisher;
 using Application.Features.Courses.Commands.CreateCourse;
+using Application.Features.Courses.Commands.DeleteCourse;
 using Application.Features.Courses.DTOs;
 using Application.Features.Courses.Query.GetAllCourses;
 using Domain.Entities;
@@ -139,19 +140,12 @@ public class CourseController : ControllerBase
     /// </summary>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteSubject(string id)
     {
-        var subject = subjects.Where(s => s.Id == id).FirstOrDefault();
-        if (subject == null)
-        {
-            return NotFound();
-        }
-        subjects.Remove(subject);
-
-        return Ok(new
-        {
-            Message = "Subject deleted successfully",
-        });
+        var command = new DeleteCourseCommand {
+            Id = id 
+        };
+        await _messageBus.SendAsync(command);
+        return NoContent();
     }
 }

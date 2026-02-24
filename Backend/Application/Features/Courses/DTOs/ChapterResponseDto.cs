@@ -7,8 +7,7 @@ namespace Application.Features.Courses.DTOs;
 
 public class ChapterResponseDto
 {
-    public string Id { get; set; }
-    public string SubjectId { get; set; } = string.Empty;
+    public string ChapterId { get; set; } = string.Empty;
     public string ChapterName { get; set; } = string.Empty;
     public List<LessonResponseDto> Lessons { get; set; } = new();
 }

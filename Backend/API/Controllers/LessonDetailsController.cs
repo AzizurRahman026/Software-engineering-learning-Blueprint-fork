@@ -1,4 +1,7 @@
-﻿using Domain.Entities;
+﻿using Application.Common.Interfaces.Publisher;
+using Application.Features.Chapters.Commands.CreateLessonDetails;
+using Application.Features.Chapters.DTOs;
+using Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
@@ -7,6 +10,12 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class LessonDetailsController : ControllerBase
 {
+    private readonly IMessageBus _messageBus;
+    public LessonDetailsController(IMessageBus messageBus)
+    {
+        _messageBus = messageBus;
+    }
+
     [HttpGet("{subjectId}/lesson/{lessonId}")]
     public async Task<ActionResult<LessonDetails>> GetLessonDetailsByLessonId(string subjectId, string lessonId)
     {
@@ -51,17 +60,12 @@ public class LessonDetailsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<LessonDetails>> CreateLessonDetails([FromBody] LessonDetails lessonDetails)
+    public async Task<ActionResult> CreateLessonDetails([FromBody] LessonDetailsDto lessonDetails)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        if (string.IsNullOrEmpty(lessonDetails.Id))
-        {
-            lessonDetails.Id = Guid.NewGuid().ToString();
-        }
-
-        return CreatedAtAction(nameof(GetLessonDetailsById), new { id = lessonDetails.Id }, lessonDetails);
+        var command = lessonDetails.ToCreateLessonDetailsCommand();
+        await _messageBus.SendAsync<CreateLessonDetailsCommand>(command);
+        
+        return Created();
     }
 
     [HttpPut("{id}")]

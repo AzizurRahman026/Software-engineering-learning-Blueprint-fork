@@ -90,7 +90,6 @@ export class LessonCreateComponent implements OnInit {
 
     onSubmit() {
         const lessonId = this.generateGuid();
-        const lessonDetailsId = this.generateGuid();
 
         if (this.isNewChapter) {
             const newChapter: Chapter = {
@@ -101,7 +100,7 @@ export class LessonCreateComponent implements OnInit {
             };
 
             this.chapterService.createChapter(newChapter).subscribe({
-                next: () => this.createLessonDetails(lessonId, lessonDetailsId),
+                next: () => this.createLessonDetails(lessonId),
                 error: (err) => console.error('Error creating chapter', err)
             });
         } else {
@@ -111,16 +110,16 @@ export class LessonCreateComponent implements OnInit {
                 updatedChapter.lessons = [...(updatedChapter.lessons || []), { id: lessonId, lessonName: this.formData.lessonName }];
 
                 this.chapterService.updateChapter(updatedChapter.id, updatedChapter).subscribe({
-                    next: () => this.createLessonDetails(lessonId, lessonDetailsId),
+                    next: () => this.createLessonDetails(lessonId),
                     error: (err) => console.error('Error updating chapter', err)
                 });
             }
         }
     }
 
-    createLessonDetails(lessonId: string, lessonDetailsId: string) {
+    createLessonDetails(lessonId: string) {
         const lessonDetails: LessonDetails = {
-            id: lessonDetailsId,
+            id: '',
             lessonId: lessonId,
             title: this.formData.title,
             description: this.formData.description,
