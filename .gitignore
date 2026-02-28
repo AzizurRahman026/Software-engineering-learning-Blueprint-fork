@@ -21,3 +21,8 @@
 **/*.log
 **/environment.ts
 **/environment.prod.ts
+
+# ======================
+# Pdf ignore
+# ======================
+**/*.pdf
