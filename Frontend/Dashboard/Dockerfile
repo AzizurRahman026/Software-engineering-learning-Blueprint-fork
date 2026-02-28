@@ -22,5 +22,7 @@ CMD ["nginx", "-g", "daemon off;"]
 
 
 # build: docker build -t frontend .
-# build: docker build --no-cache -t frontend .
+# build: docker build --no-cache -t frontend:1.0 .
+# tag: docker tag frontend:1.0 abdulaziz026/frontend:v1.0
+# push: docker push abdulaziz026/frontend:v1.0
 # run: docker run -d -p 4200:80 --name dashboard frontend:1.0

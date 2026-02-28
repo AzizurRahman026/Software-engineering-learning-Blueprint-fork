@@ -42,6 +42,8 @@ ENTRYPOINT ["dotnet", "API.dll"]
 
 # docker run command from root sln folder
 # docker build -f API/Dockerfile -t backend:1.0 .
+# tag: docker tag backend:1.0 abdulaziz026/backend:v1.0
+# push: docker push abdulaziz026/backend:v1.0
 
 # image run command:
 # docker run -d -p 5000:8080 --name api-backend backend:1.0

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Courses.Commands.UpdateCourse;
 
-public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, bool>
+public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand>
 {
     private readonly ICourseRepository _courseRepository;
     
@@ -16,7 +16,7 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, b
         _courseRepository = courseRepository;
     }
     
-    public async Task<bool> Handle(UpdateCourseCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateCourseCommand request, CancellationToken cancellationToken)
     {
         var course = await _courseRepository.GetByIdAsync<Subject>(request.Id);
         if (course == null)
@@ -33,6 +33,6 @@ public class UpdateCourseCommandHandler : IRequestHandler<UpdateCourseCommand, b
             throw new UnknownException();
         }
 
-        return true;
+        return;
     }
 }

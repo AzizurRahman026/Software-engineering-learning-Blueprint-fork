@@ -1,11 +1,13 @@
 .header {
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 15px 20px;
-  background-color: #1f2937; /* dark background */
+  background-color: #1f2937;
+  /* dark background */
   color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   font-family: 'Segoe UI', sans-serif;
 }
 
@@ -25,20 +27,27 @@
 /* Tech Nav Links */
 .tech-nav {
   display: flex;
-  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  flex: 1;
+  padding: 0 10px;
 }
 
 .tech-link {
-  color: #cbd5e1; /* light gray */
+  color: #cbd5e1;
+  /* light gray */
   text-decoration: none;
-  padding: 6px 10px;
+  padding: 0 5px;
   border-radius: 4px;
   transition: background 0.2s, color 0.2s;
 }
 
 .tech-link:hover {
-  background-color: #2563eb; /* darker hover */
-  color: #f8fafc; /* white */
+  background-color: #2563eb;
+  /* darker hover */
+  color: #f8fafc;
+  /* white */
   cursor: pointer;
 }
 
@@ -49,7 +58,8 @@
 }
 
 .auth-button {
-  color: #f8fafc; /* blue */
+  color: #f8fafc;
+  /* blue */
   border: 1px solid #2563eb;
   padding: 6px 14px;
   border-radius: 4px;
@@ -67,6 +77,7 @@
 /* Responsive */
 @media (max-width: 768px) {
   .tech-nav {
-    display: none; /* hide tech links on mobile */
+    display: none;
+    /* hide tech links on mobile */
   }
 }

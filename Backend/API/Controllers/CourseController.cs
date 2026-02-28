@@ -137,8 +137,7 @@ public class CourseController : ControllerBase
             Description = updateDto.Description
         };
 
-        var result = await _messageBus.SendAsync<UpdateCourseCommand, bool>(command);
-        if (!result) return BadRequest("Failed to update subject");
+        await _messageBus.SendAsync<UpdateCourseCommand>(command);
 
         return Ok(new
         {
