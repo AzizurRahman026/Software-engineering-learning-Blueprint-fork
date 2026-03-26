@@ -5,6 +5,7 @@ using GenerativeAI;
 using GenerativeAI.Microsoft;
 using Infrastructure.Configuration;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Llm;
 
@@ -13,10 +14,12 @@ public class LlmFactory : ILlmFactory
     private readonly GeminiOptions _geminiOptions;
     private readonly ClaudeOptions _claudeOptions;
 
-    public LlmFactory(GeminiOptions geminiOptions, ClaudeOptions claudeOptions)
+    public LlmFactory(
+        IOptions<GeminiOptions> geminiOptions,
+        IOptions<ClaudeOptions> claudeOptions)
     {
-        _geminiOptions = geminiOptions;
-        _claudeOptions = claudeOptions;
+        _geminiOptions = geminiOptions.Value;
+        _claudeOptions = claudeOptions.Value;
     }
 
     public IChatClient Create(LlmProvider provider) => provider switch
