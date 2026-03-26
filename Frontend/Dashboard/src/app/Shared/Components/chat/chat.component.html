@@ -12,13 +12,22 @@
       <button class="close-btn" (click)="toggleChat()">×</button>
     </div>
 
-    <div class="chat-messages">
+    <div class="chat-messages" #messagesContainer>
       @for (msg of messages; track msg.time) {
         <div class="message-group" [class.user]="msg.sender === 'user'">
           <div class="message-bubble">
             {{ msg.text }}
           </div>
           <span class="message-time">{{ msg.time | date:'shortTime' }}</span>
+        </div>
+      }
+      @if (isLoading) {
+        <div class="message-group">
+          <div class="message-bubble typing">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
         </div>
       }
     </div>
@@ -28,7 +37,8 @@
         type="text" 
         [(ngModel)]="newMessage" 
         (keyup.enter)="sendMessage()"
-        placeholder="Ask me questin..."
+        [disabled]="isLoading"
+        placeholder="Ask me a question..."
       >
       <button class="send-btn" (click)="sendMessage()">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

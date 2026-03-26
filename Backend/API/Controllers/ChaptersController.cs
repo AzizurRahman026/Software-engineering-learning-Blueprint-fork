@@ -20,50 +20,6 @@ public class ChaptersController : ControllerBase
     {
         _messageBus = messageBus;
     }
-    List<Chapter> chapters = new()
-    {
-        new Chapter {
-            ChapterName = "C# Basics",
-            SubjectId = "csharp",
-            Lessons = new List<Lesson>
-            {
-                new Lesson { Id = "1", LessonName = "Variables and Data Types" },
-                new Lesson { Id = "2", LessonName = "Control Structures" },
-                new Lesson { Id = "3", LessonName = "Object-Oriented Programming" }
-            }
-        },
-        new Chapter {
-            ChapterName = "C# OOP",
-            SubjectId = "csharp",
-            Lessons = new List<Lesson>
-            {
-                new Lesson { Id = "1", LessonName = "Classes and Objects" },
-                new Lesson { Id = "2", LessonName = "Inheritance and Polymorphism" },
-                new Lesson { Id = "3", LessonName = "Interfaces and Abstract Classes" }
-            }
-        },
-        new Chapter {
-            ChapterName = "C# Advanced Concepts",
-            SubjectId = "csharp",
-            Lessons = new List<Lesson>
-            {
-                new Lesson { Id = "1", LessonName = "Delegates and Events" },
-                new Lesson { Id = "2", LessonName = "LINQ and Lambda Expressions" },
-                new Lesson { Id = "3", LessonName = "Asynchronous Programming with async/await" }
-            }
-        },
-        new Chapter {
-            ChapterName = "Asp.net Core Basics",
-            SubjectId = "1234",
-            Lessons = new List<Lesson>
-            {
-                new Lesson { Id = "1", LessonName = "Introduction to ASP.NET Core" },
-                new Lesson { Id = "2", LessonName = "Building Web APIs" },
-                new Lesson { Id = "3", LessonName = "Entity Framework Core" }
-            }
-        }
-    };
-
 
     [HttpGet("{subjectId}")]
     public async Task<ActionResult<IEnumerable<ChapterResponseDto>>> GetChaptersBySubject(string subjectId)

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ChatService } from '../../../Core/Services/chat.service';
 
 interface Message {
   text: string;
@@ -16,18 +17,25 @@ interface Message {
   styleUrl: './chat.component.scss'
 })
 export class ChatComponent {
+  @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
+
   isOpen = false;
+  isLoading = false;
   newMessage = '';
   messages: Message[] = [
     { text: 'Hello! How can I help you grow in the AI world today?', sender: 'ai', time: new Date() }
   ];
+
+  constructor(private chatService: ChatService,
+              private cd: ChangeDetectorRef
+  ) {}
 
   toggleChat() {
     this.isOpen = !this.isOpen;
   }
 
   sendMessage() {
-    if (this.newMessage.trim()) {
+    if (this.newMessage.trim() && !this.isLoading) {
       // Add user message
       this.messages.push({
         text: this.newMessage,
@@ -35,25 +43,32 @@ export class ChatComponent {
         time: new Date()
       });
 
-      const userText = this.newMessage.toLowerCase();
+      const userText = this.newMessage;
       this.newMessage = '';
+      this.isLoading = true;
 
-      // Simple AI response simulation
-      setTimeout(() => {
-        let aiResponse = "That's a great question! I'd recommend starting with our 'Foundations' section in the dashboard.";
-        
-        if (userText.includes('prompt')) {
-          aiResponse = "Prompt Engineering is crucial! Check out our literacy section for advanced techniques.";
-        } else if (userText.includes('python')) {
-          aiResponse = "Python is the language of AI. We have some great resources coming up on that!";
+      // Call backend AI service
+      this.chatService.sendMessage(userText).subscribe({
+        next: (response) => {
+          this.messages.push({
+            text: response.response,
+            sender: 'ai',
+            time: new Date()
+          });
+          this.isLoading = false;
+          this.cd.detectChanges();
+        },
+        error: (err) => {
+          console.error('Chat error:', err);
+          this.messages.push({
+            text: 'Sorry, I encountered an error. Please try again.',
+            sender: 'ai',
+            time: new Date()
+          });
+          this.isLoading = false;
         }
-
-        this.messages.push({
-          text: aiResponse,
-          sender: 'ai',
-          time: new Date()
-        });
-      }, 1000);
+      });
     }
   }
 }
+

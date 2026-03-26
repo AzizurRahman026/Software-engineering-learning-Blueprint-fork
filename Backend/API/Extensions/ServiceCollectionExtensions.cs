@@ -1,6 +1,7 @@
-﻿using Application.Common.Interfaces.Persistence;
+using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Publisher;
 using Application.Common.Interfaces.Repositories;
+using Application.Common.Interfaces.Services;
 using Domain.Repositories.Base;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
@@ -20,9 +21,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRepository, Repository>();
         services.AddSingleton<ICourseRepository, CourseRepository>();
 
-
         // register the message bus
         services.AddSingleton<IMessageBus, MessageBus>();
+
 
         return services;
     }

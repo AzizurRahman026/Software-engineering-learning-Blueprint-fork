@@ -1,14 +1,16 @@
 .subjects-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 4rem 2rem;
+  padding: 8rem 2rem 4rem 2rem;
   color: var(--text-primary);
 
-  .header {
+  .subjects-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 4rem;
+    position: relative;
+    z-index: 10;
     
     h2 {
       margin: 0;
@@ -33,6 +35,9 @@
       background: var(--primary-gradient);
       color: white;
       box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+      position: relative;
+      z-index: 2000;
+      pointer-events: auto;
 
       &:hover {
         transform: translateY(-2px);

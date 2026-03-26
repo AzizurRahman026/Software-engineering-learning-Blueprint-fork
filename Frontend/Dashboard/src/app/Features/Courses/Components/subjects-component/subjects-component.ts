@@ -32,16 +32,19 @@ export class SubjectsComponent implements OnInit {
   };
 
   constructor(private store: Store, private router: Router) {
+    console.log('SubjectsComponent instantiated');
     this.subjects$ = this.store.select(selectAllSubjects);
     this.loading$ = this.store.select(selectSubjectsLoading);
     this.error$ = this.store.select(selectSubjectsError);
   }
 
   ngOnInit(): void {
+    console.log('SubjectsComponent initialized');
     this.store.dispatch(loadSubjects());
   }
 
   startCreate(): void {
+    console.log('Starting subject creation...');
     this.isCreating = true;
     this.isEditing = false;
     this.editingSubjectId = null;
