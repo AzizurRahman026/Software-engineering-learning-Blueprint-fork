@@ -3,8 +3,8 @@ It runs the AGENTIC LOOP:
 1. Get Tools from MCP server
 2. Send Query + Tools to LLM (e.g. Gemini/Claude)
 3. If LLM says "call this tool" → call it via MCP
-4. Feed result back to LLM
-5. Repeat until LLM gives a plain text final answer
+4. Feed result back to the LLM
+5. Repeat until the LLM gives a plain text final answer
 */
 using Application.Common.Interfaces.Services;
 using Application.Features.Chat.DTOs;
@@ -12,7 +12,6 @@ using Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 using System.Text.Json;
 
 namespace Application.Features.Chat.Commands;
@@ -29,7 +28,7 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
     {
         _mcpService = mcpService;
         _llmFactory = llmFactory;
-        _logger = logger;        
+        _logger = logger;
     }
 
     public async Task<ChatResponseDto> Handle(SendChatCommand request, CancellationToken ct)
@@ -65,9 +64,9 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
             {
                 response = await llm.GetResponseAsync(messages, chatOptions, ct);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting response from LLM");
+                _logger.LogError(ex, "Error getting response from LLM. Provider={Provider}. FullDetail={FullDetail}", request.Provider, ex.ToString());
                 return new ChatResponseDto
                 {
                     Answer = $"Error getting response from LLM: {ex.Message}",
@@ -75,10 +74,10 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
                     ToolCalls = toolCallLog
                 };
             }
-            // add llm response to conversation history
+            // add llm response to conversation history (Gemini MEAI mapper can mis-cast mixed TextContent + tool calls)
             foreach (var message in response.Messages)
             {
-                messages.Add(message);
+                messages.Add(NormalizeAssistantMessageForHistory(message));
             }
 
             // did LLM call a tool?
@@ -90,11 +89,11 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
             // no tools called, response is final answer
             if (toolCalls.Count == 0)
             {
-                var answer = string.Join("\n", 
-                                response.Messages
-                                .Select(m => m.Contents)
-                                .SelectMany(txt => txt)
-                                .ToList());
+                var answer = string.Join("\n",
+                    response.Messages
+                        .SelectMany(m => m.Contents)
+                        .OfType<TextContent>()
+                        .Select(c => c.Text));
                 _logger.LogInformation($"Chat complete. ToolsUsed={toolCallLog.Count}");
                 return new ChatResponseDto
                 {
@@ -122,16 +121,31 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
                 }
                 toolCallLog.Add(ToolCallRecord.Create(toolCall.Name, result));
 
-                // Wrap result in a Dictionary as Gemini SDK requires the result to be a JSON object
-                var toolResultObj = new Dictionary<string, object> { { "result", result } };
+                var toolResultJson = JsonSerializer.SerializeToElement(new { result });
 
                 toolResultMessages.Add(new ChatMessage(
                     ChatRole.Tool,
-                    contents: [new FunctionResultContent(toolCall.CallId ?? toolCall.Name, toolResultObj)]
+                    contents: [new FunctionResultContent(toolCall.CallId ?? toolCall.Name, toolResultJson)]
                 ));
             }
             messages.AddRange(toolResultMessages);
         }
+    }
+
+    /// <summary>
+    /// Strips plain text from assistant turns that also request tool calls so the Gemini MEAI client
+    /// does not hit InvalidCastException (TextContent treated as JsonElement) on the next round.
+    /// </summary>
+    private static ChatMessage NormalizeAssistantMessageForHistory(ChatMessage message)
+    {
+        if (message.Role != ChatRole.Assistant)
+            return message;
+
+        var functionCalls = message.Contents.OfType<FunctionCallContent>().ToList();
+        if (functionCalls.Count == 0)
+            return message;
+
+        return new ChatMessage(ChatRole.Assistant, contents: [.. functionCalls]);
     }
 
     private static Dictionary<string, object?> ParseArguments(object? arguments)

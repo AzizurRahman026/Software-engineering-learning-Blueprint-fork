@@ -16,7 +16,7 @@
       @for (msg of messages; track msg.time) {
         <div class="message-group" [class.user]="msg.sender === 'user'">
           <div class="message-bubble">
-            {{ msg.text }}
+            <div [innerHTML]="formatMessage(msg.text)"></div>
           </div>
           <span class="message-time">{{ msg.time | date:'shortTime' }}</span>
         </div>
