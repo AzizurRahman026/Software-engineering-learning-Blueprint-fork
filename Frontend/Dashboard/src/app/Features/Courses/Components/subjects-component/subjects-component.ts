@@ -7,6 +7,7 @@ import { Observable } from 'rxjs';
 import { selectAllSubjects, selectSubjectsError, selectSubjectsLoading } from '../../../../Core/Store/selectors/subject.selectors';
 import { AsyncPipe } from '@angular/common';
 import { createSubject, deleteSubject, loadSubjects, updateSubject } from '../../../../Core/Store/actions/subject.actions';
+import { SignalrService } from '../../../../Core/Services/signalr.service';
 
 @Component({
   selector: 'app-subjects-component',

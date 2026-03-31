@@ -4,6 +4,8 @@ using Infrastructure.Configuration;
 using Infrastructure.Llm;
 using Infrastructure.MCP;
 using Infrastructure.Services;
+using Infrastructure.SignalR.Hubs;
+using Infrastructure.SignalR.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +32,9 @@ builder.Services.AddSingleton<IMcpService, McpService>();
 builder.Services.AddHostedService<McpStartupService>();
 builder.Services.AddSingleton<ILlmFactory, LlmFactory>();
 
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<INotificationService, SignalRNotificationService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular",
@@ -37,7 +42,8 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins("http://localhost:4200", "https://frontend-v1-0-4m1l.onrender.com")
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials();
         });
 });
 
@@ -65,4 +71,5 @@ app.UseGlobalExceptionMiddleware();
 
 app.MapControllers();
 app.MapMcp("/mcp");
+app.MapHub<NotificationHub>("/notifications");
 app.Run();
