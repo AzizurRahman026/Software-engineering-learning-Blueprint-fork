@@ -113,14 +113,16 @@ This project follows a **strict Layered / Clean Architecture** on the backend, w
 
 ---
 
-### 🚢 DevOps & Deployment
+### 🚢 DevOps & Deployment — Docker Containers for Easy Deployment
+
+This project is fully containerized, ensuring **"it works on my machine"** translates to **"it works everywhere."** 
 
 | Tool | Usage |
 |---|---|
-| **Docker** | Individual `Dockerfile` for both frontend (Nginx) and backend (ASP.NET Core) |
-| **Docker Compose** | Single-command full-stack local environment with service networking |
+| **Docker** | Individual `Dockerfile` for both frontend (Nginx) and backend (ASP.NET Core) ensuring easy and isolated deployment. |
+| **Docker Compose** | Single-command full-stack local environment setup (`docker compose up`) with integrated service networking. |
 | **Multi-environment Config** | `appsettings.json` / `appsettings.Development.json` / `appsettings.Production.json` with environment-specific overrides |
-| **Render.com** | Deployed frontend at `https://frontend-v1-0-4m1l.onrender.com` |
+| **Render.com** | Deployed containerized frontend at `https://frontend-v1-0-4m1l.onrender.com` |
 
 ---
 
