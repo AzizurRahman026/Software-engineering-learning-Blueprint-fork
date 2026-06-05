@@ -80,27 +80,42 @@ export class ChatComponent implements OnDestroy {
   }
 
   loadThreadList() {
-    const saved = localStorage.getItem('chat_threads');
-    this.threads = saved ? JSON.parse(saved) : [];
+    this.chatService.getThreads().subscribe({
+      next: (threads) => {
+        this.threads = threads.map(t => ({
+          threadId: t.threadId,
+          title: t.title,
+          lastMessageAt: new Date(t.lastMessageAt)
+        }));
 
-    if (this.threads.length > 0) {
-      this.switchThread(this.threads[0].threadId);
-    }
-    else {
-      this.messages = [
-        {
-          text: 'Hello! How can I help you grow in the AI world today?',
-          sender: 'ai',
-          time: new Date()
+        if (this.threads.length > 0) {
+          this.switchThread(this.threads[0].threadId);
+        } else {
+          this.showGreeting();
         }
-      ];
-    }
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.threads = [];
+        this.showGreeting();
+      }
+    });
+  }
+
+  private showGreeting(): void {
+    this.messages = [
+      {
+        text: 'Hello! How can I help you grow in the AI world today?',
+        sender: 'ai',
+        time: new Date()
+      }
+    ];
   }
 
   switchThread(threadId: string): void {
     this.currentThreadId = threadId;
     this.showThreadList = false;
-    this.messages = this.loadMessages(this.currentThreadId);
+    this.loadMessages(threadId);
   }
 
   toggleChat() {
@@ -249,8 +264,6 @@ export class ChatComponent implements OnDestroy {
             sender: 'ai',
             time: new Date()
           });
-          this.saveMessages(this.currentThreadId);
-          this.saveThreadList();
           this.isLoading = false;
           this.cd.detectChanges();
         },
@@ -275,33 +288,27 @@ export class ChatComponent implements OnDestroy {
   deleteThread(threadId: string, event: Event): void {
     event.stopPropagation();
     this.threads = this.threads.filter(t => t.threadId !== threadId);
-    localStorage.removeItem(`chat_thread_${threadId}`);
-    this.saveThreadList();
     if (this.currentThreadId === threadId) {
       this.startNewChat();
     }
     this.chatService.deleteThread(threadId).subscribe();
   }
 
-  private loadMessages(threadId: string): Message[] {
-    const saved = localStorage.getItem(`chat_thread_${threadId}`);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.map((m: any) => ({ ...m, time: new Date(m.time) }));
-    }
-    return [
-      { text: 'Hello! How can I help you today?',
-        sender: 'ai',
-        time: new Date()
-      }];
-  }
-
-  private saveMessages(threadId: string): void {
-    localStorage.setItem(`chat_thread_${threadId}`, JSON.stringify(this.messages));
-  }
-
-  private saveThreadList(): void {
-    localStorage.setItem('chat_threads', JSON.stringify(this.threads));
+  private loadMessages(threadId: string): void {
+    this.chatService.getMessages(threadId).subscribe({
+      next: (msgs) => {
+        this.messages = msgs.length
+          ? msgs.map(m => ({ text: m.text, sender: m.sender, time: new Date() }))
+          : [{ text: 'Hello! How can I help you today?', sender: 'ai', time: new Date() }];
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.messages = [
+          { text: 'Sorry, I could not load this conversation.', sender: 'ai', time: new Date() }
+        ];
+        this.cd.detectChanges();
+      }
+    });
   }
 
   formatMessage(text: string): string {

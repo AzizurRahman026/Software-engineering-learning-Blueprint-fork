@@ -41,7 +41,7 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
         var threadId = request.ThreadId;
         if (string.IsNullOrWhiteSpace(threadId))
         {
-            threadId = await _historyStore.CreateThreadAsync();
+            threadId = await _historyStore.CreateThreadAsync(request.UserId);
             _logger.LogInformation($"Created new thread {threadId}");
         }
 

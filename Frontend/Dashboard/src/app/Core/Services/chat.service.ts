@@ -24,6 +24,11 @@ export interface ChatResponseDto {
   toolCalls: ToolCallRecord[];
 }
 
+export interface ChatMessageDto {
+  text: string;
+  sender: 'user' | 'ai';
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -47,6 +52,10 @@ export class ChatService {
 
   getThreads(): Observable<ChatThreadInfo[]> {
     return this.http.get<ChatThreadInfo[]>(`${this.chatUrl}/threads`);
+  }
+
+  getMessages(threadId: string): Observable<ChatMessageDto[]> {
+    return this.http.get<ChatMessageDto[]>(`${this.chatUrl}/threads/${threadId}/messages`);
   }
   
   deleteThread(threadId: string): Observable<void> {

@@ -23,7 +23,7 @@ builder.Services.Configure<McpServerOptions>(builder.Configuration.GetSection("M
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("GeminiOptions"));
 builder.Services.Configure<ClaudeOptions>(builder.Configuration.GetSection("ClaudeOptions"));
 
-builder.Services.AddSingleton<IChatHistoryStore, InMemoryChatHistoryStore>();
+builder.Services.AddSingleton<IChatHistoryStore, MongoChatHistoryStore>();
 builder.Services.AddMcpServer()
     .WithHttpTransport()
     .AddAuthorizationFilters()

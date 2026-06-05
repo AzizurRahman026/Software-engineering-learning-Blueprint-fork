@@ -9,3 +9,4 @@ public class ChatRequestDto
     public string Query { get; set; }
     public LlmProvider Provider { get; set; } = LlmProvider.Gemini;
 }
+

@@ -10,13 +10,14 @@ public class InMemoryChatHistoryStore : IChatHistoryStore
     public ConcurrentDictionary<string, List<ChatMessage>> _threads = new();
     public ConcurrentDictionary<string, ChatThreadInfo> _threadInfo = new();
 
-    public async Task<string> CreateThreadAsync()
+    public async Task<string> CreateThreadAsync(string userId)
     {
         var threadId = Guid.NewGuid().ToString();
         _threads[threadId] = new();
         _threadInfo[threadId] = new ChatThreadInfo
         {
             ThreadId = threadId,
+            UserId = userId,
             Title = "New Chat",
             CreatedAt = DateTime.UtcNow,
             LastMessageAt = DateTime.UtcNow
@@ -25,17 +26,21 @@ public class InMemoryChatHistoryStore : IChatHistoryStore
         return await Task.FromResult(threadId);
     }
 
-    public Task DeleteThreadAsync(string threadId)
+    public Task DeleteThreadAsync(string threadId, string userId)
     {
+        if (_threadInfo.TryGetValue(threadId, out var info) && info.UserId != userId)
+            return Task.CompletedTask; // not the owner
+
         _threadInfo.TryRemove(threadId, out _);
         _threads.TryRemove(threadId, out _);
         return Task.CompletedTask;
     }
 
-    public Task<List<ChatThreadInfo>> GetAllThreadAsync()
+    public Task<List<ChatThreadInfo>> GetAllThreadAsync(string userId)
     {
         var threads = _threadInfo
             .Values
+            .Where(x => x.UserId == userId)
             .OrderByDescending(x => x.LastMessageAt)
             .ToList();
         return Task.FromResult(threads);
