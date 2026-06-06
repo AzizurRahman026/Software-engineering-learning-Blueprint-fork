@@ -1,0 +1,71 @@
+@if (loading) {
+  <div class="state-msg">Loading…</div>
+} @else if (error) {
+  <div class="state-msg error">{{ error }}</div>
+} @else if (post) {
+  <article class="post">
+    <button class="back-link" (click)="goBack()">← Back to blog</button>
+
+    <header class="post-header">
+      <h1>{{ post.title }}</h1>
+      <div class="post-meta">
+        <span>✍️ {{ post.authorUsername }}</span>
+        <span>{{ post.createdAt | date:'longDate' }}</span>
+        @if (post.updatedAt) {
+          <span class="edited">(edited)</span>
+        }
+      </div>
+
+      @if (isAuthor) {
+        <div class="owner-actions">
+          <button class="btn btn-secondary" (click)="editPost()">Edit</button>
+          <button class="btn btn-danger" (click)="requestDeletePost()">Delete</button>
+        </div>
+      }
+    </header>
+
+    <div class="markdown-body" [innerHTML]="contentHtml"></div>
+
+    <div class="post-actions">
+      <button class="like-btn" [class.liked]="post.likedByCurrentUser" (click)="toggleLike()">
+        {{ post.likedByCurrentUser ? '❤️' : '🤍' }} {{ post.likeCount }}
+      </button>
+    </div>
+
+    <section class="comments">
+      <h3>Comments ({{ post.commentCount }})</h3>
+
+      <div class="comment-input">
+        <textarea [(ngModel)]="newComment" name="newComment" rows="3"
+                  class="form-control" placeholder="Add a comment…"></textarea>
+        <button class="btn btn-primary" [disabled]="!newComment.trim()" (click)="addComment()">Post Comment</button>
+      </div>
+
+      @for (comment of post.comments; track comment.id) {
+        <div class="comment">
+          <div class="comment-head">
+            <span class="comment-author">{{ comment.authorUsername }}</span>
+            <span class="comment-date">{{ comment.createdAt | date:'medium' }}</span>
+          </div>
+          <p class="comment-body">{{ comment.content }}</p>
+          @if (canDeleteComment(comment.authorId)) {
+            <button class="comment-delete" (click)="deleteComment(comment.id)">Delete</button>
+          }
+        </div>
+      } @empty {
+        <p class="no-comments">No comments yet. Start the conversation!</p>
+      }
+    </section>
+  </article>
+
+  <app-confirm-dialog
+      [isOpen]="pendingDeletePost"
+      title="Delete blog post?"
+      message="Are you sure you want to delete this post? This action cannot be undone."
+      confirmLabel="Delete"
+      cancelLabel="Cancel"
+      variant="danger"
+      (confirmed)="confirmDeletePost()"
+      (cancelled)="cancelDeletePost()">
+  </app-confirm-dialog>
+}

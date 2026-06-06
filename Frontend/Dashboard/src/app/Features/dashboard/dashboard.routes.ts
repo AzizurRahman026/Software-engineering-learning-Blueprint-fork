@@ -18,4 +18,21 @@ export const DashboardRoutes: Routes = [
         path: 'profile',
         loadComponent: () => import('../Auth/Components/profile/profile.component').then(o => o.ProfileComponent)
     },
+    // Blog feature. `create` is listed before `:id` so it isn't captured as a post id.
+    {
+        path: 'blog',
+        loadComponent: () => import('../Blog/Components/blog-list/blog-list').then(o => o.BlogListComponent)
+    },
+    {
+        path: 'blog/create',
+        loadComponent: () => import('../Blog/Components/blog-form/blog-form').then(o => o.BlogFormComponent)
+    },
+    {
+        path: 'blog/:id/edit',
+        loadComponent: () => import('../Blog/Components/blog-form/blog-form').then(o => o.BlogFormComponent)
+    },
+    {
+        path: 'blog/:id',
+        loadComponent: () => import('../Blog/Components/blog-detail/blog-detail').then(o => o.BlogDetailComponent)
+    },
 ];

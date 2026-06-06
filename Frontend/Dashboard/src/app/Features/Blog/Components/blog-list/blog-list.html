@@ -1,0 +1,44 @@
+<div class="blog-container">
+  <header class="blog-header">
+    <div>
+      <h2>Educational Blog</h2>
+      <p class="subtitle">Read and share knowledge on educational topics.</p>
+    </div>
+    <button class="btn btn-primary" (click)="startCreate()">Write a Blog</button>
+  </header>
+
+  @if (error) {
+    <div class="error-banner">{{ error }}</div>
+  }
+
+  @if (loading) {
+    <div class="empty-state"><p>Loading posts…</p></div>
+  }
+
+  <div class="blog-grid">
+    @for (post of posts; track post.id) {
+      <article class="blog-card"
+               role="link"
+               tabindex="0"
+               (click)="openPost(post.id)"
+               (keydown.enter)="openPost(post.id)">
+        <h3 class="card-title">{{ post.title }}</h3>
+        <p class="card-summary">{{ post.summary }}</p>
+        <div class="card-meta">
+          <span class="author">✍️ {{ post.authorUsername }}</span>
+          <span class="date">{{ post.createdAt | date:'mediumDate' }}</span>
+        </div>
+        <div class="card-stats">
+          <span>❤️ {{ post.likeCount }}</span>
+          <span>💬 {{ post.commentCount }}</span>
+        </div>
+      </article>
+    }
+  </div>
+
+  @if (!posts.length && !loading) {
+    <div class="empty-state">
+      <p>No blogs yet. Be the first to share your knowledge!</p>
+    </div>
+  }
+</div>

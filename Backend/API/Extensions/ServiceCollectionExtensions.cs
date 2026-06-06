@@ -24,6 +24,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IRepository, Repository>();
         services.AddSingleton<ICourseRepository, CourseRepository>();
         services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddSingleton<IBlogPostRepository, BlogPostRepository>();
+        services.AddSingleton<IBlogCommentRepository, BlogCommentRepository>();
+        services.AddSingleton<IBlogLikeRepository, BlogLikeRepository>();
 
         // Message bus
         services.AddSingleton<IMessageBus, MessageBus>();

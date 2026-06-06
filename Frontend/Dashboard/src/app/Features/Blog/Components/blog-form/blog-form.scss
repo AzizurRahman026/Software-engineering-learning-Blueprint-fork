@@ -1,0 +1,162 @@
+.form-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+
+  h2 {
+    margin: 0 0 1.5rem;
+    color: var(--text-primary);
+  }
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+
+    .optional {
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+  }
+}
+
+.form-control {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.9rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+  }
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editor {
+  resize: vertical;
+  font-family: 'Fira Code', 'Consolas', monospace;
+  line-height: 1.5;
+}
+
+.preview {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  overflow-y: auto;
+  max-height: 32rem;
+
+  .preview-placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+}
+
+.markdown-body {
+  color: var(--text-primary);
+  line-height: 1.6;
+  word-wrap: break-word;
+
+  // Preview content is injected via [innerHTML], so its children don't get this
+  // component's style-scoping attribute. ::ng-deep pierces encapsulation to reach them.
+  ::ng-deep {
+    :where(h1, h2, h3) { color: var(--text-primary); }
+    a { color: var(--accent-cyan); }
+
+    // Inline code: subtle pill with its own color + border to separate it from prose.
+    code {
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9em;
+      color: #7dd3fc;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 0.1rem 0.4rem;
+      border-radius: 5px;
+    }
+
+    // Fenced code blocks: distinct dark panel, full border, accent strip on the left.
+    pre {
+      background: #0b1120;
+      color: #e2e8f0;
+      border: 1px solid var(--glass-border);
+      border-left: 3px solid var(--accent-cyan);
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin: 1rem 0;
+
+      code {
+        color: inherit;
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 0.85rem;
+        line-height: 1.6;
+      }
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent-blue);
+      margin: 0;
+      padding-left: 1rem;
+      color: var(--text-secondary);
+    }
+    img { max-width: 100%; }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.error-banner {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  padding: 0.6rem 1.3rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}

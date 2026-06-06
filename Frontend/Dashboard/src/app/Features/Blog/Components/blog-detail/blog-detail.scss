@@ -1,0 +1,199 @@
+.post {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.state-msg {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 3rem 1rem;
+
+  &.error { color: #fca5a5; }
+}
+
+.back-link {
+  background: none;
+  border: none;
+  color: var(--accent-cyan);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0;
+  margin-bottom: 1.5rem;
+}
+
+.post-header {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0 0 0.5rem;
+    color: var(--text-primary);
+    font-size: 2rem;
+  }
+
+  .post-meta {
+    display: flex;
+    gap: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+
+    .edited { font-style: italic; }
+  }
+
+  .owner-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+}
+
+.markdown-body {
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 1.02rem;
+  word-wrap: break-word;
+
+  // Content is injected via [innerHTML], so its child elements don't get this
+  // component's style-scoping attribute. ::ng-deep pierces encapsulation to reach them.
+  ::ng-deep {
+    :where(h1, h2, h3, h4) { color: var(--text-primary); margin-top: 1.5rem; }
+    a { color: var(--accent-cyan); }
+
+    // Inline code: subtle pill with its own color + border to separate it from prose.
+    code {
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9em;
+      color: #7dd3fc;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 0.1rem 0.4rem;
+      border-radius: 5px;
+    }
+
+    // Fenced code blocks: distinct dark panel, full border, accent strip on the left.
+    pre {
+      background: #192542;
+      color: #24c9cb;
+      border: 1px solid var(--glass-border);
+      border-left: 3px solid var(--accent-cyan);
+      padding: 1rem 1.1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin: 1.25rem 0;
+
+      code {
+        // Reset the inline-code pill styling inside a block.
+        color: inherit;
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 0.88rem;
+        line-height: 1.6;
+      }
+    }
+
+    blockquote {
+      border-left: 3px solid var(--accent-blue);
+      margin: 0;
+      padding-left: 1rem;
+      color: var(--text-secondary);
+    }
+    img { max-width: 100%; }
+  }
+}
+
+.post-actions {
+  margin: 2rem 0;
+}
+
+.like-btn {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.95rem;
+
+  &.liked { border-color: #ef4444; }
+}
+
+.comments {
+  border-top: 1px solid var(--glass-border);
+  padding-top: 1.5rem;
+
+  h3 { color: var(--text-primary); }
+}
+
+.comment-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.form-control {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem 0.9rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+
+  &:focus { outline: none; border-color: var(--accent-blue); }
+}
+
+.comment {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+
+  .comment-head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    margin-bottom: 0.4rem;
+  }
+
+  .comment-author { font-weight: 600; color: var(--text-primary); }
+  .comment-date { font-size: 0.75rem; color: var(--text-secondary); }
+  .comment-body { margin: 0; color: var(--text-primary); line-height: 1.5; }
+
+  .comment-delete {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    color: #fca5a5;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+}
+
+.no-comments {
+  color: var(--text-secondary);
+}
+
+.btn {
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.88rem;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-primary { background: var(--primary-gradient); color: #fff; }
+.btn-secondary { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); }
+.btn-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #fca5a5; }
