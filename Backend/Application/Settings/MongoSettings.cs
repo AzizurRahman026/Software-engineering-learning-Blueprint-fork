@@ -1,5 +1,4 @@
-﻿using MongoDB.Driver.Search;
-namespace Application.Settings;
+﻿namespace Application.Settings;
 
 /// <summary>
 /// Represents configuration settings for connecting to a MongoDB database, including connection string, 

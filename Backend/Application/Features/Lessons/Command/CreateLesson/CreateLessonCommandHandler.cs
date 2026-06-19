@@ -3,7 +3,6 @@ using Application.Common.Interfaces.Repositories;
 using Domain.Entities;
 using Domain.Exceptions;
 using MediatR;
-using MongoDB.Driver;
 
 namespace Application.Features.Lessons.Command.CreateLesson;
 
