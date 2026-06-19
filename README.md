@@ -1,4 +1,4 @@
-# 🚀 Software Engineer Blueprint — Project Tech Stack
+# 🚀 Software Engineer Blueprint — Project Tech Stack Overview
 
 > A **full-stack, AI-powered learning platform** built to demonstrate production-grade software engineering patterns — from clean architecture and real-time communication to multi-LLM orchestration and agentic AI tooling.
 
