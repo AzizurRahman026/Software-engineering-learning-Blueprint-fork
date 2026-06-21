@@ -20,11 +20,7 @@ public class CreateBlogPostCommandHandler : IRequestHandler<CreateBlogPostComman
 
     public async Task<string> Handle(CreateBlogPostCommand request, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.Title))
-            throw new ValidationException("Title is required.");
-        if (string.IsNullOrWhiteSpace(request.Content))
-            throw new ValidationException("Content is required.");
-
+        // Validation moved to CreateBlogPostCommandValidator and runs in the pipeline before this handler
         var author = await _userRepository.GetByIdAsync<User>(request.AuthorId);
         if (author is null)
             throw new NotFoundException("Author not found.");
