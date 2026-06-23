@@ -1,6 +1,6 @@
 # Project Structure
 
-> Auto-generated on 2026-06-22 (updated)
+> Auto-generated on 2026-06-23
 
 ```
 Software-engineering-learning-Blueprint-fork/
@@ -298,7 +298,9 @@ Software-engineering-learning-Blueprint-fork/
 │   │
 │   └── Tests/
 │       ├── Tests.csproj
-│       └── UnitTest1.cs
+│       └── Domain/
+│           └── ValueObjects/
+│               └── EmailTests.cs
 │
 └── Frontend/
     └── Dashboard/                          (Angular app)
