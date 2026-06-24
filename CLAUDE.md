@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> Always answer in Bangla + English (mixed) language.
+> Always answer in English (mixed) language.
 
 ## Project
 
@@ -12,7 +12,7 @@ A full-stack, AI-powered learning platform. Backend is ASP.NET Core (.NET 10) in
 
 ### Backend (run from `Backend/`)
 ```bash
-dotnet build "backend BluePrint.sln"        # build whole solution
+dotnet build BackendBluePrint.slnx          # build whole solution
 dotnet run --project API                    # run the Web API (Swagger at /swagger in Development)
 dotnet test                                 # run all xUnit tests
 dotnet test --filter "FullyQualifiedName~EmailTests"          # run one test class

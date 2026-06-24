@@ -16,7 +16,7 @@ Software-engineering-learning-Blueprint-fork/
 ├── README.md
 │
 ├── Backend/
-│   ├── backend BluePrint.sln
+│   ├── BackendBluePrint.slnx
 │   ├── backend-documentation.md
 │   ├── Dockerfile
 │   │
