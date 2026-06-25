@@ -85,3 +85,7 @@ app.MapControllers();
 app.MapMcp("/mcp");
 app.MapHub<NotificationHub>("/notifications");
 app.Run();
+
+// Exposed so WebApplicationFactory<Program> can discover the app's entry point
+// for integration tests. Top-level-statement programs are otherwise internal.
+public partial class Program { }
