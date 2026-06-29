@@ -45,6 +45,7 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   ├── MasstransitAndMediatRExtensions.cs
 │   │   │   └── ServiceCollectionExtensions.cs
 │   │   ├── MiddleWare/
+│   │   │   ├── CorrelationIdMiddleware.cs
 │   │   │   └── GlobalExceptionMiddleware.cs
 │   │   └── Properties/
 │   │       └── launchSettings.json
@@ -279,8 +280,7 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   ├── GeminiChatClient.cs
 │   │   │   └── LlmFactory.cs
 │   │   ├── MCP/
-│   │   │   ├── McpService.cs
-│   │   │   └── McpStartupService.cs
+│   │   │   └── McpService.cs
 │   │   ├── Persistence/
 │   │   │   ├── DatabaseContext.cs
 │   │   │   └── Serializers/
@@ -316,6 +316,7 @@ Software-engineering-learning-Blueprint-fork/
 │       └── Integration/
 │           ├── IntegrationTestFactory.cs
 │           └── Auth/
+│               ├── SignupEndpointPersistenceTests.cs
 │               ├── SignupEndpointValidationTests.cs
 │               └── SignupPersistenceTests.cs
 │
