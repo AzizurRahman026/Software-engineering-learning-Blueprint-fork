@@ -1,3 +1,4 @@
+using Domain.Events;
 using Domain.Exceptions;
 using Domain.ValueObjects;
 
@@ -29,13 +30,17 @@ public class User : BaseEntity
         if (string.IsNullOrWhiteSpace(passwordHash) || string.IsNullOrWhiteSpace(passwordSalt))
             throw new ValidationException("Password credentials are required.");
 
-        return new User
+        var user = new User
         {
             Username = username.Trim().ToLowerInvariant(),
             Email = email,
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt
         };
+        
+        /// Record "user registered" so a dispatcher can react after save (welcome email, analytics, etc.)
+        user.RaiseDomainEvent(new UserRegisteredEvent(user.Id, user.Username, user.Email.Value));
+        return user;
     }
 
     /// <summary>Changes the username, applying the same normalization + invariant as Register.</summary>
