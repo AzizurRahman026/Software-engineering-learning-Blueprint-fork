@@ -70,3 +70,5 @@ Angular standalone components (`inject()` API, `@if`/`@for` control flow). State
 
 ## Configuration
 API config is bound via the Options pattern (`IOptions<T>`) from `appsettings.json` sections: `McpServer`, `GeminiOptions`, `ClaudeOptions`, `BrevoEmail`, `Auth:PasswordReset`, plus Mongo and Redis connection settings. Provide LLM API keys, the MongoDB connection string, and the Redis connection before running. CORS allows `http://localhost:4200` and the deployed Render frontend.
+
+**Redis connection per environment:** the base `appsettings.json` leaves `ConnectionStrings:Redis` empty (empty → falls back to in-memory `IDistributedCache`, so the app still boots). Local dev sets `localhost:6379` in `appsettings.Development.json`. **Production** never commits a connection string — set the `ConnectionStrings__Redis` environment variable on the host (ASP.NET maps `__` to `ConnectionStrings:Redis` and it overrides the empty base value).

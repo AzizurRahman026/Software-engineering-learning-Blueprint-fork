@@ -1,6 +1,6 @@
 # Project Structure
 
-> Auto-generated on 2026-06-27
+> Auto-generated on 2026-06-29
 
 ```
 Software-engineering-learning-Blueprint-fork/
@@ -29,6 +29,7 @@ Software-engineering-learning-Blueprint-fork/
 │   ├── API/
 │   │   ├── API.csproj
 │   │   ├── appsettings.json
+│   │   ├── appsettings.Development.json
 │   │   ├── Dockerfile
 │   │   ├── Program.cs
 │   │   ├── Controllers/
@@ -72,6 +73,7 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   │   │   ├── IAuthValidator.cs
 │   │   │   │   │   └── IPasswordHasher.cs
 │   │   │   │   └── Services/
+│   │   │   │       ├── ICacheService.cs
 │   │   │   │       ├── IChatHistoryStore.cs
 │   │   │   │       ├── IEmailSender.cs
 │   │   │   │       ├── ILlmFactory.cs
@@ -112,6 +114,7 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   │           ├── LoginQuery.cs
 │   │   │   │           └── LoginQueryHandler.cs
 │   │   │   ├── Blog/
+│   │   │   │   ├── BlogCacheKeys.cs
 │   │   │   │   ├── Commands/
 │   │   │   │   │   ├── AddComment/
 │   │   │   │   │   │   ├── AddCommentCommand.cs
@@ -297,7 +300,8 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   └── Pbkdf2PasswordHasher.cs
 │   │   ├── Services/
 │   │   │   ├── BrevoEmailSender.cs
-│   │   │   └── MessageBus.cs
+│   │   │   ├── MessageBus.cs
+│   │   │   └── RedisCacheService.cs
 │   │   └── SignalR/
 │   │       ├── Hubs/
 │   │       │   └── NotificationHub.cs
@@ -308,14 +312,17 @@ Software-engineering-learning-Blueprint-fork/
 │       ├── Tests.csproj
 │       ├── Application/
 │       │   └── Features/
-│       │       └── Auth/
-│       │           └── SignupCommandValidatorTests.cs
+│       │       ├── Auth/
+│       │       │   └── SignupCommandValidatorTests.cs
+│       │       └── Blog/
+│       │           └── BlogCacheAsideTests.cs
 │       ├── Domain/
 │       │   └── ValueObjects/
 │       │       └── EmailTests.cs
 │       └── Integration/
 │           ├── IntegrationTestFactory.cs
 │           └── Auth/
+│               ├── CorrelationIdPropagationTests.cs
 │               ├── SignupEndpointPersistenceTests.cs
 │               ├── SignupEndpointValidationTests.cs
 │               └── SignupPersistenceTests.cs
