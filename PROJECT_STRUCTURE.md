@@ -1,6 +1,6 @@
 # Project Structure
 
-> Auto-generated on 2026-06-29
+> Auto-generated on 2026-06-30
 
 ```
 Software-engineering-learning-Blueprint-fork/
@@ -56,6 +56,8 @@ Software-engineering-learning-Blueprint-fork/
 │   │   ├── Common/
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs
+│   │   │   ├── Events/
+│   │   │   │   └── DomainEventNotification.cs
 │   │   │   ├── Helper/
 │   │   │   │   └── TellMe.cs
 │   │   │   ├── Interfaces/
@@ -113,6 +115,8 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   │       └── Login/
 │   │   │   │           ├── LoginQuery.cs
 │   │   │   │           └── LoginQueryHandler.cs
+│   │   │   │   ├── Events/
+│   │   │   │   │   └── UserRegisteredEventHandler.cs
 │   │   │   ├── Blog/
 │   │   │   │   ├── BlogCacheKeys.cs
 │   │   │   │   ├── Commands/
@@ -237,6 +241,7 @@ Software-engineering-learning-Blueprint-fork/
 │   ├── Domain/
 │   │   ├── Domain.csproj
 │   │   ├── Common/
+│   │   │   ├── IDomainEvent.cs
 │   │   │   └── ValueObject.cs
 │   │   ├── Entities/
 │   │   │   ├── BaseEntity.cs
@@ -251,6 +256,8 @@ Software-engineering-learning-Blueprint-fork/
 │   │   ├── Enums/
 │   │   │   ├── LlmProvider.cs
 │   │   │   └── NotificationType.cs
+│   │   ├── Events/
+│   │   │   └── UserRegisteredEvent.cs
 │   │   ├── Exceptions/
 │   │   │   ├── AuthenticationException.cs
 │   │   │   ├── NotFoundException.cs
