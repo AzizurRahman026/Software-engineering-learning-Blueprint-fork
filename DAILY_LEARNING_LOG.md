@@ -2,6 +2,42 @@
 
 > Tracks additions to the Software Engineering Learning Blueprint project, day by day.
 
+## 2026-07-01 — Domain event handler refactored + event dispatch test suite added
+
+**New additions:**
+- `Backend/Application/Features/Auth/Events/DomainEventHandler.cs` — Replaces `UserRegisteredEventHandler.cs` with a generalised handler that subscribes to the non-generic `DomainEventNotification` and dispatches on the concrete domain event type via a `switch`. This "single handler, many events" shape is the Open/Closed Principle in action: each new domain event type is a new `case`, not a new handler class, while still keeping side-effects out of the command handler.
+- `Backend/Tests/Application/Features/Auth/SignupDomainEventDispatchTests.cs` — Three-scenario unit test suite that proves the full domain-event lifecycle: (1) a successful signup publishes exactly one `DomainEventNotification` wrapping a `UserRegisteredEvent` with the correct user data; (2) after dispatch the aggregate's internal event buffer is drained (clear-then-publish), so re-saving the same `User` entity would not re-fire side-effects; (3) a failed repository save publishes nothing, ensuring side-effects are strictly conditional on a committed write. Uses a hand-rolled `SpyPublisher` (implements `IPublisher`) to intercept MediatR notifications without a real bus.
+- `Frontend/Dashboard/src/app/Shared/Components/sidebar-component/` (4 files) — Angular standalone sidebar component with spec. Demonstrates the Shared module pattern: reusable UI building blocks extracted into a `Shared/Components` folder so any feature module can import them without circular dependencies.
+- `Frontend/Dashboard/src/app/Shared/Models/notification.model.ts` — TypeScript interface representing the notification payload. Placing domain models in `Shared/Models` (rather than inside a single feature) makes the type available across all features that deal with notifications (e.g. SignalR subscriber and any UI component that renders notifications).
+- `Frontend/Dashboard/src/environments/` (`environment.development.ts`, `environment.production.ts`) — Angular environment files that hold build-time configuration (API base URL, feature flags). The Angular CLI swaps the correct file at build time, mirroring ASP.NET Core's `appsettings.{Environment}.json` layered-config pattern on the frontend.
+
+**Concepts reinforced today:**
+- Open/Closed Principle — `DomainEventHandler` can grow with new `case` branches as the domain adds events, without modifying the dispatch mechanism or the command handler
+- Clear-then-publish — domain events are collected on the aggregate, dispatched after a successful write, then cleared; ensures side-effects never fire twice for the same write
+- Spy test double — a minimal `IPublisher` implementation that records published notifications replaces a full MediatR bus, keeping the unit test fast and assertion-precise
+- Test isolation for event-driven code — testing that side-effects do NOT fire on failure is as important as testing that they do fire on success
+- Angular environment files — build-time configuration swapping is the frontend equivalent of environment-specific config files; keeps environment-specific values out of source code
+- Shared module pattern — extracting reusable components and models to `Shared/` avoids feature coupling and is a prerequisite for lazy-loaded Angular modules
+
+---
+
+## 2026-06-30 — Domain events pattern introduced (IDomainEvent, UserRegisteredEvent, MediatR adapter)
+
+**New additions:**
+- `Backend/Domain/Common/IDomainEvent.cs` — A framework-free marker interface for domain events, carrying only `OccurredOnUtc`. Lives entirely in Domain with zero external dependencies, so the Domain layer never takes a reference to MediatR or any infrastructure concern.
+- `Backend/Domain/Events/UserRegisteredEvent.cs` — A record that carries the facts of a successful user registration (UserId, Username, Email, OccurredOnUtc). Raised inside `User.Register` via `BaseEntity.RaiseDomainEvent()`, decoupling the signup side-effects from the command handler that creates the user.
+- `Backend/Application/Common/Events/DomainEventNotification.cs` — A generic MediatR `INotification` wrapper (`DomainEventNotification<TDomainEvent>`) that adapts any `IDomainEvent` into the MediatR pipeline. This is the Anti-Corruption Layer between the framework-free Domain and the MediatR-aware Application layer.
+- `Backend/Application/Features/Auth/Events/UserRegisteredEventHandler.cs` — A `INotificationHandler` that reacts to `DomainEventNotification<UserRegisteredEvent>`. Demonstrates the Observer / Pub-Sub pattern: the `SignupCommandHandler` raises the event and never knows who handles it; multiple handlers can be added for the same event without touching the handler.
+
+**Concepts reinforced today:**
+- Domain Events pattern — entities raise events that describe what happened; side-effects are handled outside the aggregate, keeping business logic cohesive and side-effect-free
+- Anti-Corruption Layer — `DomainEventNotification<T>` wraps a pure domain concept in the infrastructure (MediatR) vocabulary so the Domain layer stays dependency-free
+- Open/Closed Principle — adding a new side-effect (e.g. send welcome email) means adding a new `INotificationHandler`, never modifying the existing signup handler
+- Clean Architecture dependency rule — the `IDomainEvent` marker lives in Domain; the MediatR adapter lives in Application; neither ever references infrastructure types
+- Observer / Pub-Sub via MediatR — `INotificationHandler<T>` is MediatR's built-in publish/subscribe mechanism; dispatching a notification fans out to all registered handlers automatically
+
+---
+
 ## 2026-06-29 — Redis cache-aside pattern and correlation ID integration tests added
 
 **New additions:**

@@ -1,6 +1,6 @@
 # Project Structure
 
-> Auto-generated on 2026-06-30
+> Auto-generated on 2026-07-01
 
 ```
 Software-engineering-learning-Blueprint-fork/
@@ -116,7 +116,7 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   │           ├── LoginQuery.cs
 │   │   │   │           └── LoginQueryHandler.cs
 │   │   │   │   ├── Events/
-│   │   │   │   │   └── UserRegisteredEventHandler.cs
+│   │   │   │   │   └── DomainEventHandler.cs
 │   │   │   ├── Blog/
 │   │   │   │   ├── BlogCacheKeys.cs
 │   │   │   │   ├── Commands/
@@ -320,7 +320,8 @@ Software-engineering-learning-Blueprint-fork/
 │       ├── Application/
 │       │   └── Features/
 │       │       ├── Auth/
-│       │       │   └── SignupCommandValidatorTests.cs
+│       │       │   ├── SignupCommandValidatorTests.cs
+            │       │       │   └── SignupDomainEventDispatchTests.cs
 │       │       └── Blog/
 │       │           └── BlogCacheAsideTests.cs
 │       ├── Domain/

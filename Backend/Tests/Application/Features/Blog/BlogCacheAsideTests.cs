@@ -5,6 +5,7 @@ using Application.Features.Blog.Commands.AddComment;
 using Application.Features.Blog.DTOs;
 using Application.Features.Blog.Queries.GetBlogPostById;
 using Domain.Entities;
+using Domain.ValueObjects;
 using NSubstitute;
 
 namespace Tests.Application.Features.Blog;
@@ -105,7 +106,9 @@ public class BlogCacheAsideTests
         postRepo.GetByIdAsync<BlogPost>(PostId).Returns(post);
 
         var userRepo = Substitute.For<IUserRepository>();
-        userRepo.GetByIdAsync<User>("user-1").Returns(new User { Id = "user-1", Username = "aziz" });
+        var user = User.Register("aziz", Email.Create("aziz@example.com"), "hash", "salt");
+        user.Id = "user-1";
+        userRepo.GetByIdAsync<User>("user-1").Returns(user);
 
         var commentRepo = Substitute.For<IBlogCommentRepository>();
         var handler = new AddCommentCommandHandler(postRepo, commentRepo, userRepo, cache);
