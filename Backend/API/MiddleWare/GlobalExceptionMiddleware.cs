@@ -49,6 +49,8 @@ public class GlobalExceptionMiddleware
             ValidationException ve     => Problem(StatusCodes.Status400BadRequest,  "Validation failed",      ve.Message),
             AuthenticationException ae => Problem(StatusCodes.Status401Unauthorized, "Authentication failed",  ae.Message),
             NotFoundException ne       => Problem(StatusCodes.Status404NotFound,     "Resource not found",     ne.Message),
+            // Upstream LLM provider failed (or agent loop hit its safety cap) -> 502 Bad Gateway, not a generic 500.
+            LlmUnavailableException le => Problem(StatusCodes.Status502BadGateway,   "AI provider unavailable", le.Message),
             UnknownException ue        => Problem(StatusCodes.Status500InternalServerError, "Server error",   ue.Message),
             _                          => Problem(StatusCodes.Status500InternalServerError, "Server error",   "Internal Server Error")
         };

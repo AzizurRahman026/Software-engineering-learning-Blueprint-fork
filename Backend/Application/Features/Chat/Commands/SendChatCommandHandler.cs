@@ -9,6 +9,7 @@ It runs the AGENTIC LOOP:
 using Application.Common.Interfaces.Services;
 using Application.Features.Chat.DTOs;
 using Domain.Entities;
+using Domain.Exceptions;
 using MediatR;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -18,6 +19,9 @@ namespace Application.Features.Chat.Commands;
 
 public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatResponseDto>
 {
+    // Safety cap: an LLM that keeps requesting tools would otherwise loop (and bill) forever.
+    private const int MaxToolIterations = 10;
+
     private readonly IMcpService _mcpService;
     private readonly ILlmFactory _llmFactory;
     private readonly IChatHistoryStore _historyStore;
@@ -36,13 +40,14 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
 
     public async Task<ChatResponseDto> Handle(SendChatCommand request, CancellationToken ct)
     {
-        _logger.LogInformation($"Handling SendChatCommand. Provider={request.Provider} Query={request.Query}");
+        _logger.LogInformation("Handling SendChatCommand. Provider={Provider} QueryLength={QueryLength}",
+            request.Provider, request.Query?.Length ?? 0);
 
         var threadId = request.ThreadId;
         if (string.IsNullOrWhiteSpace(threadId))
         {
             threadId = await _historyStore.CreateThreadAsync(request.UserId);
-            _logger.LogInformation($"Created new thread {threadId}");
+            _logger.LogInformation("Created new thread {ThreadId}", threadId);
         }
 
         var threadMessages = await _historyStore.GetHistoryAsync(threadId);
@@ -63,10 +68,19 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
         // Step 4: Start conversation with llm by add user latest query
         threadMessages.Add(new ChatMessage(ChatRole.User, request.Query));
         var toolCallLog = new List<ToolCallRecord>();
+        long totalInputTokens = 0, totalOutputTokens = 0;
 
         // This is the AGENTIC LOOP
-        while (true)
+        for (var iteration = 1; ; iteration++)
         {
+            if (iteration > MaxToolIterations)
+            {
+                _logger.LogWarning("Agentic loop exceeded {MaxIterations} iterations. Provider={Provider} ToolCalls={ToolCallCount}",
+                    MaxToolIterations, request.Provider, toolCallLog.Count);
+                throw new LlmUnavailableException(
+                    $"The AI agent exceeded the maximum of {MaxToolIterations} tool iterations without producing a final answer.");
+            }
+
             ChatResponse response;
 
             try
@@ -75,13 +89,15 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting response from LLM. Provider={Provider}. FullDetail={FullDetail}", request.Provider, ex.ToString());
-                return new ChatResponseDto
-                {
-                    Answer = $"Error getting response from LLM: {ex.Message}",
-                    Provider = request.Provider,
-                    ToolCalls = toolCallLog
-                };
+                _logger.LogError(ex, "LLM call failed. Provider={Provider} Iteration={Iteration}", request.Provider, iteration);
+                throw new LlmUnavailableException($"The {request.Provider} provider failed to respond.", ex);
+            }
+
+            // Cost observability: accumulate token usage across every loop round-trip.
+            if (response.Usage is { } usage)
+            {
+                totalInputTokens += usage.InputTokenCount ?? 0;
+                totalOutputTokens += usage.OutputTokenCount ?? 0;
             }
             // add llm response to conversation history (Gemini MEAI mapper can mis-cast mixed TextContent + tool calls)
             foreach (var message in response.Messages)
@@ -103,7 +119,9 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
                         .SelectMany(m => m.Contents)
                         .OfType<TextContent>()
                         .Select(c => c.Text));
-                _logger.LogInformation($"Chat complete. ToolsUsed={toolCallLog.Count}");
+                _logger.LogInformation(
+                    "Chat complete. Provider={Provider} ToolsUsed={ToolsUsed} InputTokens={InputTokens} OutputTokens={OutputTokens}",
+                    request.Provider, toolCallLog.Count, totalInputTokens, totalOutputTokens);
                 await _historyStore.SaveChatMessageAsync(threadId, threadMessages);
 
                 return new ChatResponseDto
@@ -118,7 +136,7 @@ public class SendChatCommandHandler : IRequestHandler<SendChatCommand, ChatRespo
             var toolResultMessages = new List<ChatMessage>();
             foreach (var toolCall in toolCalls)
             {
-                _logger.LogInformation($"LLM called tool: {toolCall.Name} with args: {toolCall.Arguments}");
+                _logger.LogInformation("LLM called tool {ToolName}", toolCall.Name);
                 var args = ParseArguments(toolCall.Arguments);
 
                 string result;
