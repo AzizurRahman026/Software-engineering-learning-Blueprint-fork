@@ -1,39 +1,29 @@
-using Application.Common.Events;
-using Application.Common.Interfaces.Repositories;
+﻿using Application.Common.Interfaces.Repositories;
 using Application.Common.Interfaces.Security;
 using Application.Features.Auth.Commands.Signup;
 using Domain.Entities;
 using Domain.Events;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
 namespace Tests.Application.Features.Auth;
 
 /// <summary>
-/// Verifies that SignupCommandHandler PUBLISHES domain events correctly.
-/// What listeners do with them (DomainEventHandler's side-effects) is not
-/// covered here — that would need the handler wired in explicitly.
+/// Day 19 contract shift: SignupCommandHandler no longer publishes domain events
+/// itself - dispatch moved to the persistence boundary (Repository drains and
+/// publishes after a successful write, via IDomainEventDispatcher, and only for
+/// AggregateRoot entities that actually raised something).
+///
+/// The handler's contract is now: RAISE (via User.Register) and PERSIST.
+/// These tests pin that contract using a fake IUserRepository, which - like any
+/// test double of the interface - does NOT dispatch. So the aggregate handed to
+/// AddAsync must still be carrying its UserRegisteredEvent when the handler returns.
+/// The dispatch behaviour itself belongs to Infrastructure's DomainEventDispatcher
+/// and is integration-test territory.
 /// </summary>
 public class SignupDomainEventPublishTests
 {
-    // Records whatever is published, regardless of which IPublisher overload fires.
-    private sealed class SpyPublisher : IPublisher
-    {
-        public List<object> Published { get; } = new();
-
-        public Task Publish(object notification, CancellationToken cancellationToken = default)
-        {
-            Published.Add(notification);
-            return Task.CompletedTask;
-        }
-
-        public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
-            where TNotification : INotification
-            => Publish((object)notification, cancellationToken);
-    }
-
-    private static (SignupCommandHandler handler, SpyPublisher publisher, List<User> persisted) BuildHandler(
+    private static (SignupCommandHandler handler, List<User> persisted) BuildHandler(
         bool addSucceeds = true)
     {
         var userRepo = Substitute.For<IUserRepository>();
@@ -41,8 +31,7 @@ public class SignupDomainEventPublishTests
         userRepo.GetByEmailAsync(Arg.Any<string>()).Returns((User?)null);
         userRepo.GetByUsernameAsync(Arg.Any<string>()).Returns((User?)null);
 
-        // Remember the User the handler saves so test 2
-        // can check its event buffer was drained.
+        // Capture the User the handler hands to the persistence boundary.
         var persisted = new List<User>();
         userRepo.AddAsync(Arg.Do<User>(u => persisted.Add(u))).Returns(addSucceeds);
 
@@ -51,15 +40,13 @@ public class SignupDomainEventPublishTests
 
         var validator = Substitute.For<IAuthValidator>();
         validator.IsValidEmail(Arg.Any<string>()).Returns(true);
-        // ValidatePassword is void and throws on failure — leaving it as a no-op = passes.
-
-        var publisher = new SpyPublisher();
+        // ValidatePassword is void and throws on failure - leaving it as a no-op = passes.
 
         var handler = new SignupCommandHandler(
-            userRepo, hasher, validator, publisher,
+            userRepo, hasher, validator,
             Substitute.For<ILogger<SignupCommandHandler>>());
 
-        return (handler, publisher, persisted);
+        return (handler, persisted);
     }
 
     private static SignupCommand ValidCommand() => new()
@@ -69,45 +56,35 @@ public class SignupDomainEventPublishTests
         Password = "Sup3r$ecret",
     };
 
-    // ── 1. The handler publishes exactly one UserRegistered notification, carrying the new id ──
+    // 1. The aggregate handed to the persistence boundary carries exactly one
+    //    UserRegisteredEvent with the real user's data - raised, not yet drained.
     [Fact]
-    public async Task Handle_OnSuccessfulSignup_PublishesExactlyOneUserRegisteredNotification()
+    public async Task Handle_OnSuccessfulSignup_PersistsUserCarryingExactlyOneUserRegisteredEvent()
     {
-        var (handler, publisher, _) = BuildHandler();
+        var (handler, persisted) = BuildHandler();
 
         var response = await handler.Handle(ValidCommand(), CancellationToken.None);
 
-        // Exactly one event, wrapped in the MediatR adapter, carrying the real user's data.
-        var notification = Assert.IsType<DomainEventNotification>(Assert.Single(publisher.Published));
-        var e = Assert.IsType<UserRegisteredEvent>(notification.DomainEvent);
+        var user = Assert.Single(persisted);
+        var e = Assert.IsType<UserRegisteredEvent>(Assert.Single(user.GetDomainEvents()));
         Assert.Equal(response.UserId, e.UserId);
         Assert.Equal("aziz", e.Username);       // normalized to lower-case
         Assert.Equal("aziz@example.com", e.Email);
     }
 
-    // ── 2. Clear-then-publish: the entity's event buffer is empty after dispatch ──────────────
+    // 2. A failed save throws, and the event is never lost from the entity -
+    //    the boundary only dispatches on success, so nothing would have fired.
     [Fact]
-    public async Task Handle_AfterDispatch_DrainsTheEntitysDomainEvents()
+    public async Task Handle_WhenSaveFails_ThrowsAndEventRemainsUndispatchedOnEntity()
     {
-        var (handler, _, persisted) = BuildHandler();
-
-        await handler.Handle(ValidCommand(), CancellationToken.None);
-
-        // The User the repository received had its events raised (1), then cleared (0) before
-        // the handler returned — so re-publishing the same aggregate is a no-op.
-        var user = Assert.Single(persisted);
-        Assert.Empty(user.GetDomainEvents());
-    }
-
-    // ── 3. A failed save publishes nothing — side-effects fire only on a real write ───────────
-    [Fact]
-    public async Task Handle_WhenSaveFails_PublishesNoNotification()
-    {
-        var (handler, publisher, _) = BuildHandler(addSucceeds: false);
+        var (handler, persisted) = BuildHandler(addSucceeds: false);
 
         await Assert.ThrowsAnyAsync<Exception>(() =>
             handler.Handle(ValidCommand(), CancellationToken.None));
 
-        Assert.Empty(publisher.Published);
+        // The aggregate still holds its event: nobody drained it, because
+        // dispatch is the persistence boundary's job and the write failed.
+        var user = Assert.Single(persisted);
+        Assert.Single(user.GetDomainEvents());
     }
 }

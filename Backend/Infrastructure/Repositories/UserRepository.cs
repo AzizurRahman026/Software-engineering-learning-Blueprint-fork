@@ -1,4 +1,5 @@
-
+﻿
+using Application.Common.Events;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Repositories;
 using Domain.Entities;
@@ -9,7 +10,8 @@ namespace Infrastructure.Repositories;
 
 public class UserRepository : Repository, IUserRepository
 {
-    public UserRepository(IDatabaseContext dbContext) : base(dbContext)
+    public UserRepository(IDatabaseContext dbContext, IDomainEventDispatcher domainEventDispatcher)
+        : base(dbContext, domainEventDispatcher)
     {
     }
 

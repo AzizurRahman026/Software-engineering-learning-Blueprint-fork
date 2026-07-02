@@ -1,8 +1,6 @@
-using Application.Common.Events;
-using Application.Common.Interfaces.Repositories;
+﻿using Application.Common.Interfaces.Repositories;
 using Application.Common.Interfaces.Security;
 using Application.Features.Auth.DTOs;
-using Domain.Common;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.ValueObjects;
@@ -16,20 +14,17 @@ public class SignupCommandHandler : IRequestHandler<SignupCommand, AuthResponseD
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthValidator _authValidator;
-    private readonly IPublisher _publisher;
     private readonly ILogger<SignupCommandHandler> _logger;
 
     public SignupCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         IAuthValidator authValidator,
-        IPublisher publisher,
         ILogger<SignupCommandHandler> logger)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _authValidator = authValidator;
-        _publisher = publisher;
         _logger = logger;
     }
 
@@ -71,20 +66,6 @@ public class SignupCommandHandler : IRequestHandler<SignupCommand, AuthResponseD
             throw new UnknownException("Failed to register user.");
 
         _logger.LogInformation("User registered successfully with {UserId}", user.Id);
-
-        // Dispatch domain events AFTER the Mongo write commits, so side-effects
-        // (welcome email, analytics) fire only on a successful save.
-        await DispatchDomainEventsAsync(user, cancellationToken);
-
         return AuthResponseDto.FromUser(user);
-    }
-
-    private async Task DispatchDomainEventsAsync(BaseEntity entity, CancellationToken cancellationToken)
-    {
-        var events = entity.GetDomainEvents().ToList();
-        entity.ClearDomainEvents(); // clear first so a re-entrant publish can't double-fire
-
-        foreach (var domainEvent in events)
-            await _publisher.Publish(new DomainEventNotification(domainEvent), cancellationToken);
     }
 }

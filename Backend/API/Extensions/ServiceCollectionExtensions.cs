@@ -1,3 +1,4 @@
+﻿using Application.Common.Events;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Publisher;
 using Application.Common.Interfaces.Repositories;
@@ -37,6 +38,9 @@ public static class ServiceCollectionExtensions
             });
         }
         services.AddSingleton<ICacheService, RedisCacheService>();
+
+        // Domain-event dispatch happens at the persistence boundary (Repository).
+        services.AddSingleton<IDomainEventDispatcher, DomainEventDispatcher>();
 
         // Repositories
         services.AddSingleton<IRepository, Repository>();

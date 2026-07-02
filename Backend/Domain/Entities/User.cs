@@ -1,10 +1,11 @@
+﻿using Domain.Common;
 using Domain.Events;
 using Domain.Exceptions;
 using Domain.ValueObjects;
 
 namespace Domain.Entities;
 
-public class User : BaseEntity
+public class User : AggregateRoot
 {
     // Setters are private: state changes only through the behavior methods below,
     public string Username { get; private set; } = string.Empty;

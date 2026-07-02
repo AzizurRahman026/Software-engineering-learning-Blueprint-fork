@@ -1,3 +1,4 @@
+﻿using Application.Common.Events;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Repositories;
 using Domain.Entities;
@@ -7,7 +8,8 @@ namespace Infrastructure.Repositories;
 
 public class BlogLikeRepository : Repository, IBlogLikeRepository
 {
-    public BlogLikeRepository(IDatabaseContext dbContext) : base(dbContext)
+    public BlogLikeRepository(IDatabaseContext dbContext, IDomainEventDispatcher domainEventDispatcher)
+        : base(dbContext, domainEventDispatcher)
     {
     }
 

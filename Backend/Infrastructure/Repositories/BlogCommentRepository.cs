@@ -1,3 +1,4 @@
+﻿using Application.Common.Events;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Repositories;
 using Domain.Entities;
@@ -7,7 +8,8 @@ namespace Infrastructure.Repositories;
 
 public class BlogCommentRepository : Repository, IBlogCommentRepository
 {
-    public BlogCommentRepository(IDatabaseContext dbContext) : base(dbContext)
+    public BlogCommentRepository(IDatabaseContext dbContext, IDomainEventDispatcher domainEventDispatcher)
+        : base(dbContext, domainEventDispatcher)
     {
     }
 
