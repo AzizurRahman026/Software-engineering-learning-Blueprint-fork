@@ -6,7 +6,9 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChatService } from '../../../Core/Services/chat.service';
+import { parseProblemDetails } from '../../../Core/Models/problem-details';
 import { marked } from 'marked';
 
 interface ChatThread {
@@ -267,14 +269,39 @@ export class ChatComponent implements OnDestroy {
           this.isLoading = false;
           this.cd.detectChanges();
         },
-        error: () => {
+        error: (err: HttpErrorResponse) => {
           this.messages.push({
-            text: 'Sorry, I encountered an error.',
+            text: this.buildErrorMessage(err),
             sender: 'ai',
             time: new Date() });
           this.isLoading = false;
+          this.cd.detectChanges();
         }
       });
+  }
+
+  /** Map the backend's RFC 7807 failure contract to a friendly chat bubble. */
+  private buildErrorMessage(err: HttpErrorResponse): string {
+    const problem = parseProblemDetails(err);
+
+    let text: string;
+    if (err.status === 502) {
+      // LlmUnavailableException -> 502 (Day 20 backend work)
+      text = 'The AI service is unavailable right now. Please try again in a moment.';
+    } else if (err.status === 400 && problem?.errors) {
+      // ValidationProblemDetails: show the field errors themselves.
+      text = Object.values(problem.errors).flat().join(' ');
+    } else if (err.status === 0) {
+      text = 'I could not reach the server. Check your connection and try again.';
+    } else {
+      text = problem?.title ?? 'Sorry, I encountered an error.';
+    }
+
+    // Surface the correlation id so a failing request can be found in the logs.
+    if (problem?.correlationId) {
+      text += `\n\n\`ref: ${problem.correlationId}\``;
+    }
+    return text;
   }
 
   startNewChat(): void {

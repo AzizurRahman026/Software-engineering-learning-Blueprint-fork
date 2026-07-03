@@ -2,6 +2,25 @@
 
 > Tracks additions to the Software Engineering Learning Blueprint project, day by day.
 
+## 2026-07-02 — Domain-event dispatch moved to the persistence boundary + LLM failure boundary added
+
+**New additions:**
+- `Backend/Domain/Common/AggregateRoot.cs` — New base class (extends `BaseEntity`) that is the *only* place domain events can be raised (`RaiseDomainEvent`, `HasDomainEvents`, `GetDomainEvents`, `ClearDomainEvents`). Splitting this out of `BaseEntity` makes event-raising an opt-in capability: plain entities (`BlogLike`, `Chapter`, ...) simply don't inherit it, so they can never trigger dispatch — enforced at compile time, not by convention.
+- `Backend/Application/Common/Events/IDomainEventDispatcher.cs` — New interface (`DispatchAsync(AggregateRoot, ...)`) owned by Application, implemented by Infrastructure. Its signature takes `AggregateRoot`, not `BaseEntity`, so the type system itself excludes non-aggregate entities from ever reaching the dispatcher.
+- `Backend/Infrastructure/Services/DomainEventDispatcher.cs` — MediatR-backed implementation, now invoked by `Repository` (`Backend/Infrastructure/Repositories/Base/Repository.cs`) right after a successful `AddAsync`/`UpdateAsync`/`DeleteAsync`, instead of from inside `SignupCommandHandler`. Clears the aggregate's event buffer *before* publishing (clear-then-publish, preventing re-entrant double-fires), resolves `IPublisher` from a fresh DI scope via `IServiceScopeFactory`, and catches per-event so one failing handler can't block the rest or fail the already-committed write.
+- `Backend/Domain/Exceptions/LlmUnavailableException.cs` — New domain exception raised when an LLM provider call fails (network/auth/quota) or the agentic tool-call loop in `SendChatCommandHandler` exceeds its new `MaxToolIterations` safety cap. Mapped to HTTP 502 by `GlobalExceptionMiddleware`, giving callers a distinct, actionable status instead of a generic 500.
+- `Backend/Tests/Application/Features/Auth/SignupDomainEventPublishTests.cs` — Replaces yesterday's `SignupDomainEventDispatchTests.cs` now that dispatch left the handler. Pins the handler's narrower contract: it must RAISE (via `User.Register`) and PERSIST only — the `User` aggregate handed to `IUserRepository.AddAsync` must still be carrying its `UserRegisteredEvent` when the handler returns, since a fake repository (unlike the real `Repository`) never dispatches. Actual dispatch behaviour is left to integration tests.
+
+**Concepts reinforced today:**
+- Persistence-boundary event dispatch — moving "drain and publish" out of the command handler and into the Repository means every write path (not just Signup) gets domain-event support for free, and the handler's job shrinks to raise + persist
+- Type-driven invariants — `AggregateRoot` vs `BaseEntity` and `IDomainEventDispatcher(AggregateRoot ...)` use the type system, not runtime checks, to guarantee only event-raising entities can ever be dispatched
+- Clear-then-publish — still enforced, now at the new dispatch site, to keep side-effects at-most-once
+- Failure isolation — a throwing `INotificationHandler` is caught per-event and logged, never allowed to fail an operation whose write already committed (this is at-most-once delivery; an outbox is the noted future fix for at-least-once)
+- Fail-fast with typed exceptions — `LlmUnavailableException` turns two failure modes (provider error, runaway agent loop) into one exception type mapped to a single meaningful HTTP status, instead of leaking a raw 500
+- Contract testing after a refactor — when responsibility moves between layers, the unit test for the layer that lost responsibility should shrink to match, and the new responsibility gets its own (here: integration-level) test
+
+---
+
 ## 2026-07-01 — Domain event handler refactored + event dispatch test suite added
 
 **New additions:**

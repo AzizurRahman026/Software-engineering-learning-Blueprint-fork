@@ -1,6 +1,6 @@
 # Project Structure
 
-> Auto-generated on 2026-07-01
+> Auto-generated on 2026-07-02
 
 ```
 Software-engineering-learning-Blueprint-fork/
@@ -57,7 +57,8 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   ├── Behaviors/
 │   │   │   │   └── ValidationBehavior.cs
 │   │   │   ├── Events/
-│   │   │   │   └── DomainEventNotification.cs
+│   │   │   │   ├── DomainEventNotification.cs
+│   │   │   │   └── IDomainEventDispatcher.cs
 │   │   │   ├── Helper/
 │   │   │   │   └── TellMe.cs
 │   │   │   ├── Interfaces/
@@ -241,6 +242,7 @@ Software-engineering-learning-Blueprint-fork/
 │   ├── Domain/
 │   │   ├── Domain.csproj
 │   │   ├── Common/
+│   │   │   ├── AggregateRoot.cs
 │   │   │   ├── IDomainEvent.cs
 │   │   │   └── ValueObject.cs
 │   │   ├── Entities/
@@ -260,6 +262,7 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   └── UserRegisteredEvent.cs
 │   │   ├── Exceptions/
 │   │   │   ├── AuthenticationException.cs
+│   │   │   ├── LlmUnavailableException.cs
 │   │   │   ├── NotFoundException.cs
 │   │   │   ├── UnknownException.cs
 │   │   │   └── ValidationException.cs
@@ -307,6 +310,7 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   └── Pbkdf2PasswordHasher.cs
 │   │   ├── Services/
 │   │   │   ├── BrevoEmailSender.cs
+│   │   │   ├── DomainEventDispatcher.cs
 │   │   │   ├── MessageBus.cs
 │   │   │   └── RedisCacheService.cs
 │   │   └── SignalR/
@@ -321,7 +325,7 @@ Software-engineering-learning-Blueprint-fork/
 │       │   └── Features/
 │       │       ├── Auth/
 │       │       │   ├── SignupCommandValidatorTests.cs
-            │       │       │   └── SignupDomainEventDispatchTests.cs
+│       │       │   └── SignupDomainEventPublishTests.cs
 │       │       └── Blog/
 │       │           └── BlogCacheAsideTests.cs
 │       ├── Domain/
