@@ -251,9 +251,11 @@ export class ChatComponent implements OnDestroy {
             this.currentThreadId = res.threadId;
             this.threads.unshift({
               threadId: res.threadId,
+              // Instant fallback title; the AI suggestion below upgrades it when it arrives.
               title: userText.length > 40 ? userText.substring(0, 40) + '...' : userText,
               lastMessageAt: new Date()
             });
+            this.suggestTitleFor(res.threadId);
           }
           else {
             const thread = this.threads.find(t => t.threadId == this.currentThreadId);
@@ -278,6 +280,24 @@ export class ChatComponent implements OnDestroy {
           this.cd.detectChanges();
         }
       });
+  }
+
+  /**
+   * The sidebar already shows a fallback title, so this must never block the
+   * chat or surface an error bubble — on failure the fallback simply stays.
+   */
+  private suggestTitleFor(threadId: string): void {
+    this.chatService.suggestThreadTitle(threadId, this.selectedProvider).subscribe({
+      next: (suggestion) => {
+        // Thread may have been deleted while the LLM was thinking — guard it.
+        const thread = this.threads.find(t => t.threadId === threadId);
+        if (thread && suggestion.title) {
+          thread.title = suggestion.title;
+          this.cd.detectChanges();
+        }
+      },
+      error: () => { /* keep the fallback title — a title is never worth an error */ }
+    });
   }
 
   /** Map the backend's RFC 7807 failure contract to a friendly chat bubble. */
