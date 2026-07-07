@@ -101,7 +101,7 @@ public class ChatController : ControllerBase
         if (userId is null)
             return Unauthorized("Missing X-User-Id header.");
 
-        var query = new SuggestThreadTitleQuery { ThreadId = threadId, Provider = provider };
+        var query = new SuggestThreadTitleQuery { ThreadId = threadId, UserId = userId, Provider = provider };
         var result = await _messageBus.SendAsync<SuggestThreadTitleQuery, ThreadTitleDto>(query);
         return Ok(result);
     }

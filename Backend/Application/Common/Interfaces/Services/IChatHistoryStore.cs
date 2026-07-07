@@ -10,6 +10,11 @@ public interface IChatHistoryStore
     Task<string> CreateThreadAsync(string userId);
     Task DeleteThreadAsync(string threadId, string userId);
     Task<List<ChatThreadInfo>> GetAllThreadAsync(string userId);
+
+    /// <summary>
+    /// Sets the persisted title of a thread. The store is the consistency boundary, so it —
+    /// </summary>
+    Task UpdateThreadTitleAsync(string threadId, string userId, string title);
 }
 
 public class ChatThreadInfo

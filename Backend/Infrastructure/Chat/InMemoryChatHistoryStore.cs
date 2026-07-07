@@ -36,6 +36,17 @@ public class InMemoryChatHistoryStore : IChatHistoryStore
         return Task.CompletedTask;
     }
 
+    public Task UpdateThreadTitleAsync(string threadId, string userId, string title)
+    {
+        if (!string.IsNullOrWhiteSpace(title)
+            && _threadInfo.TryGetValue(threadId, out var info)
+            && info.UserId == userId) // same ownership guard as the Mongo store
+        {
+            info.Title = title;
+        }
+        return Task.CompletedTask;
+    }
+
     public Task<List<ChatThreadInfo>> GetAllThreadAsync(string userId)
     {
         var threads = _threadInfo

@@ -90,6 +90,10 @@ public class SuggestThreadTitleQueryHandler : IRequestHandler<SuggestThreadTitle
             .Take(MaxTopics)
             .ToList();
 
+        // Persist so the title survives reload. Ownership is enforced
+        // INSIDE the store, so we just pass UserId — a mismatch is a silent no-op there.
+        await _historyStore.UpdateThreadTitleAsync(request.ThreadId, request.UserId, title);
+
         return new ThreadTitleDto { Title = title, Topics = topics };
     }
 
