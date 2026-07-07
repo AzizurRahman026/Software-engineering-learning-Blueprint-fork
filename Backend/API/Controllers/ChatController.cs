@@ -2,7 +2,9 @@ using Application.Common.Interfaces.Publisher;
 using Application.Common.Interfaces.Services;
 using Application.Features.Chat.Commands;
 using Application.Features.Chat.DTOs;
+using Application.Features.Chat.Queries.SuggestThreadTitle;
 using Application.Tools.DTOs;
+using Domain.Enums;
 using Application.Tools.Queries;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
@@ -87,6 +89,21 @@ public class ChatController : ControllerBase
             .ToList();
 
         return Ok(messages);
+    }
+
+    // ── POST /api/chat/threads/{threadId}/suggest-title ──────────────────────
+    // Asks the LLM for a structured { title, topics } suggestion for the thread.
+    // Read-only: the client decides whether to apply it (persisting is a next step).
+    [HttpPost("threads/{threadId}/suggest-title")]
+    public async Task<IActionResult> SuggestThreadTitle(string threadId, [FromQuery] LlmProvider provider = LlmProvider.Gemini)
+    {
+        var userId = GetUserId();
+        if (userId is null)
+            return Unauthorized("Missing X-User-Id header.");
+
+        var query = new SuggestThreadTitleQuery { ThreadId = threadId, Provider = provider };
+        var result = await _messageBus.SendAsync<SuggestThreadTitleQuery, ThreadTitleDto>(query);
+        return Ok(result);
     }
 
     // ── DELETE /api/chat/threads/{threadId} — delete a thread ────────

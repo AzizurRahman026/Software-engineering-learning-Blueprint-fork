@@ -2,6 +2,26 @@
 
 > Tracks additions to the Software Engineering Learning Blueprint project, day by day.
 
+## 2026-07-06 — MongoDB explain plans, index startup initializer, and resilient LLM client
+
+**New additions:**
+- `Backend/Infrastructure/Persistence/MongoIndexInitializer.cs` — An `IHostedService` that runs `CreateOneAsync` for hot-path indexes at startup. Because `CreateOneAsync` is idempotent, running it on every boot is safe and ensures indexes are present in every environment (local, Docker, CI's Testcontainers run) without manual `mongosh` intervention. Failure is logged but never thrown, so a Mongo startup race can't kill the app.
+- `Backend/Infrastructure/Persistence/Indexing/` (5 files: `IMongoIndexConfiguration.cs`, `MongoIndexConfiguration.cs`, `BlogPostIndexes.cs`, `BlogCommentIndexes.cs`, `BlogLikeIndexes.cs`) — Separates index declaration into its own folder. `IMongoIndexConfiguration` is a small interface that each index class implements, keeping the initializer open to new indexes without modification (Open/Closed Principle applied to schema maintenance).
+- `Backend/Infrastructure/Llm/ResilientChatClient.cs` — A decorator around `IChatClient` that adds retry/resilience behaviour (Polly or manual) without touching the underlying Gemini or Claude clients. Demonstrates the Decorator pattern: the consuming `LlmFactory` keeps returning the same interface; the resilience wrapper is composed around it transparently.
+- `Frontend/Dashboard/src/app/Core/Models/problem-details.ts` — TypeScript interface matching ASP.NET Core's RFC 7807 `ProblemDetails` response shape. Placing it in `Core/Models` makes it available across all Angular features that handle HTTP errors, without duplicating the type definition per feature.
+- `docs/sessions/2026-07-06-day-23.md` — Day 23 session notes covering MongoDB `explain("executionStats")`, reading COLLSCAN vs IXSCAN output, the `totalDocsExamined : nReturned` ratio heuristic, and the production failure mode (silent degradation → 100 MB sort-memory hard error).
+- `Playground/LoggerFactoryDemo/` — New empty playground directory, likely scaffolded for the next session's `ILoggerFactory` / structured-logging experiments.
+
+**Concepts reinforced today:**
+- MongoDB explain plans — `explain("executionStats")` is how you verify a query's execution strategy; COLLSCAN with `hasSortStage: true` signals a missing index, while IXSCAN with `totalDocsExamined ≈ nReturned` confirms the index is used
+- Startup index management — declaring indexes as code (`IHostedService`) rather than in a setup script makes schema changes reproducible and reviewable in version history
+- Open/Closed Principle in schema management — a new `IMongoIndexConfiguration` implementation adds an index without touching the initializer loop
+- Decorator pattern for cross-cutting concerns — `ResilientChatClient` wraps `IChatClient` to add retry logic without modifying either concrete LLM client
+- RFC 7807 ProblemDetails on the frontend — matching the backend error contract with a typed TypeScript interface eliminates guesswork in error-handling code
+- Cache vs index — a cache hides a slow query; an index fixes it; both are needed because cache misses, cold starts, and eviction storms still pay the full query cost
+
+---
+
 ## 2026-07-02 — Domain-event dispatch moved to the persistence boundary + LLM failure boundary added
 
 **New additions:**

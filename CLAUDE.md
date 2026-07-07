@@ -49,12 +49,13 @@ Controllers do **not** call MediatR directly. They inject `IMessageBus` (Infrast
 
 Validation runs automatically: `ValidationBehavior<,>` is a MediatR pipeline behavior that executes every registered FluentValidation `AbstractValidator` before the handler. Validators are auto-discovered from the Application assembly (`AddValidatorsFromAssembly`), so a new `*CommandValidator` is wired up just by existing — no manual registration. On failure it throws `ValidationException`, caught by `GlobalExceptionMiddleware`.
 
-The middleware pipeline is ordered `CorrelationIdMiddleware` (outermost, stamps/propagates a correlation id per request) → `GlobalExceptionMiddleware` (maps domain exceptions — `ValidationException`, `NotFoundException`, `AuthenticationException` — to HTTP responses).
+The middleware pipeline is ordered `CorrelationIdMiddleware` (outermost, stamps/propagates a correlation id per request) → `GlobalExceptionMiddleware` (maps domain exceptions — `ValidationException`, `NotFoundException`, `AuthenticationException`, `LlmUnavailableException` → 502 — to HTTP responses). Error responses follow **RFC 7807** (`ProblemDetails`/`ValidationProblemDetails`) with the correlation id attached as a `correlationId` extension; the Angular chat UI consumes this contract, so keep new error paths on it.
 
 **Adding a feature:** create the folder under `Application/Features/<Area>/{Commands|Queries}/<Name>/`, add the request + handler (+ validator if needed), then a controller action that dispatches it via `IMessageBus`. No DI registration needed for handlers/validators (assembly-scanned).
 
 ### AI / agentic subsystem
 - `ILlmFactory` (strategy pattern) returns the right `IChatClient` (`GeminiChatClient` or `ClaudeChatClient`) based on the `LlmProvider` enum passed at request time — consuming code never changes.
+- Provider clients are wrapped by `ResilientChatClient` (`Infrastructure/Llm/`): per-attempt timeout + bounded retry with exponential backoff/jitter for transient failures (network, 429, 5xx). It sits **inside** `FunctionInvokingChatClient`, so a single provider round-trip is retried — never the whole tool-calling loop (which would re-execute tools). Provider errors that exhaust retries surface as `LlmUnavailableException` (→ 502 via the middleware).
 - The app hosts an **in-process MCP server** (`AddMcpServer().WithToolsFromAssembly(...)`, mapped at `/mcp`) and connects to it from the **same process** via an MCP client. `McpStartupService` (an `IHostedService`) boots the client after Kestrel is listening.
 - MCP tools are `[McpServerTool]`-decorated methods in `Application/Tools/TutorialTools.cs`. The chat handler runs the full agentic loop: user message → LLM → tool-call decision → MCP tool execution → result injection → final response.
 - Chat identity flows via the `X-User-Id` HTTP header (set by the Angular `user-id.interceptor`), not a token. Chat history is persisted through `IChatHistoryStore` (`MongoChatHistoryStore`).
@@ -64,6 +65,8 @@ SignalR `NotificationHub` mapped at `/notifications`; backend pushes via typed `
 
 ### Persistence & caching
 MongoDB via a custom generic `IDatabaseContext` (CRUD, offset + cursor pagination, ACID transactions with `IClientSessionHandle`, connection-pool tuning). The `Email` value object is stored via a custom `EmailSerializer` (registered in `ConfigurationSettingExtensions`). Repositories and the DB context are registered as **singletons**. A Redis distributed cache backs a **cache-aside** pattern on read-heavy paths (e.g. blog reads) — see `BlogCacheAsideTests` for the expected behavior.
+
+**Mongo indexes** are ensured at startup by `MongoIndexInitializer` (an `IHostedService` in `Infrastructure/Persistence/`): each collection declares its indexes in its own `IMongoIndexConfiguration` implementation under `Infrastructure/Persistence/Indexing/`, and implementations are assembly-scanned at registration. To index a new collection, add one new configuration class — no changes to the initializer or DI wiring. Index creation is idempotent and non-blocking: a failure is logged loudly but never stops startup.
 
 ### Frontend
 Angular standalone components (`inject()` API, `@if`/`@for` control flow). State via NgRx (actions/reducers/effects/selectors) for subject/course data. Lazy-loaded feature routes (`Auth`, `Blog`, `Courses`, `dashboard`) under multiple layouts (`MainLayout`, `CourseLayout`). Config (API base URL etc.) comes from `ConfigService` + `environments/`.

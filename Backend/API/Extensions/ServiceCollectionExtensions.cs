@@ -7,6 +7,7 @@ using Application.Common.Interfaces.Services;
 using Application.Common.Security;
 using Domain.Repositories.Base;
 using Infrastructure.Persistence;
+using Infrastructure.Persistence.Indexing;
 using Infrastructure.Repositories;
 using Infrastructure.Repositories.Base;
 using Infrastructure.Security;
@@ -21,6 +22,19 @@ public static class ServiceCollectionExtensions
     {
         // Database
         services.AddSingleton<IDatabaseContext, DatabaseContext>();
+
+        // Ensure hot-path Mongo indexes at startup. Configurations are assembly-scanned
+        // (like AddValidatorsFromAssembly): a new IMongoIndexConfiguration class is
+        // picked up automatically — no changes here or in MongoIndexInitializer.
+        var indexConfigurationTypes = typeof(IMongoIndexConfiguration).Assembly
+            .GetTypes()
+            .Where(t => t is { IsClass: true, IsAbstract: false }
+                        && typeof(IMongoIndexConfiguration).IsAssignableFrom(t));
+        foreach (var type in indexConfigurationTypes)
+        {
+            services.AddSingleton(typeof(IMongoIndexConfiguration), type);
+        }
+        services.AddHostedService<MongoIndexInitializer>();
 
         // Distributed cache (Redis). If no connection string is configured we fall
         // back to a process-local in-memory distributed cache so the app still runs

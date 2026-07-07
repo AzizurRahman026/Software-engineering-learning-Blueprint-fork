@@ -29,6 +29,12 @@ export interface ChatMessageDto {
   sender: 'user' | 'ai';
 }
 
+/** Mirror of the backend's ThreadTitleDto (structured LLM output, Day 24). */
+export interface ThreadTitleDto {
+  title: string;
+  topics: string[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -60,5 +66,14 @@ export class ChatService {
   
   deleteThread(threadId: string): Observable<void> {
     return this.http.delete<void>(`${this.chatUrl}/threads/${threadId}`);
+  }
+
+  /** Ask the LLM for a short { title, topics } suggestion for a thread. */
+  suggestThreadTitle(threadId: string, provider: number = 0): Observable<ThreadTitleDto> {
+    return this.http.post<ThreadTitleDto>(
+      `${this.chatUrl}/threads/${threadId}/suggest-title`,
+      null,
+      { params: { provider } }
+    );
   }
 }

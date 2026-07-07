@@ -1,6 +1,6 @@
 # Project Structure
 
-> Auto-generated on 2026-07-02
+> Auto-generated on 2026-07-06
 
 ```
 Software-engineering-learning-Blueprint-fork/
@@ -291,11 +291,19 @@ Software-engineering-learning-Blueprint-fork/
 │   │   ├── Llm/
 │   │   │   ├── ClaudeChatClient.cs
 │   │   │   ├── GeminiChatClient.cs
-│   │   │   └── LlmFactory.cs
+│   │   │   ├── LlmFactory.cs
+│   │   │   └── ResilientChatClient.cs
 │   │   ├── MCP/
 │   │   │   └── McpService.cs
 │   │   ├── Persistence/
 │   │   │   ├── DatabaseContext.cs
+│   │   │   ├── MongoIndexInitializer.cs
+│   │   │   ├── Indexing/
+│   │   │   │   ├── BlogCommentIndexes.cs
+│   │   │   │   ├── BlogLikeIndexes.cs
+│   │   │   │   ├── BlogPostIndexes.cs
+│   │   │   │   ├── IMongoIndexConfiguration.cs
+│   │   │   │   └── MongoIndexConfiguration.cs
 │   │   │   └── Serializers/
 │   │   │       └── EmailSerializer.cs
 │   │   ├── Repositories/
@@ -367,6 +375,8 @@ Software-engineering-learning-Blueprint-fork/
             │   ├── Core/
             │   │   ├── Interceptors/
             │   │   │   └── user-id.interceptor.ts
+            │   │   ├── Models/
+            │   │   │   └── problem-details.ts
             │   │   ├── Services/
             │   │   │   ├── chat.service.ts
             │   │   │   ├── config.service.ts
@@ -496,12 +506,4 @@ Software-engineering-learning-Blueprint-fork/
             │       │   │   └── header-component.ts
             │       │   └── sidebar-component/
             │       │       ├── sidebar-component.html
-            │       │       ├── sidebar-component.scss
-            │       │       ├── sidebar-component.spec.ts
-            │       │       └── sidebar-component.ts
-            │       └── Models/
-            │           └── notification.model.ts
-            └── environments/
-                ├── environment.development.ts
-                └── environment.production.ts
-```
+            │       │       ├── sid
