@@ -47,6 +47,23 @@ public class MongoChatHistoryStore : IChatHistoryStore
         await _db.DeleteAsync(thread);
     }
 
+    public async Task UpdateThreadTitleAsync(string threadId, string userId, string title)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return; // don't overwrite a good title with nothing
+
+        var thread = await _db.GetItemByConditionAsync<ChatThread>(t => t.Id == threadId);
+        if (thread is null || thread.UserId != userId)
+            return; // not found, or not the owner — ownership is enforced HERE, at the store
+
+        thread.Title = title;
+        // NOTE: IDatabaseContext is deliberately driver-free and only exposes whole-document
+        // UpdateAsync (replace), not a partial $set. That means a concurrent SaveChatMessageAsync
+        // could interleave; acceptable for a cosmetic title. A true field-level $set would need a
+        // new driver-level method on the abstraction — a cost we don't pay for a title.
+        await _db.UpdateAsync(thread);
+    }
+
     public async Task<List<ChatThreadInfo>> GetAllThreadAsync(string userId)
     {
         var threads = await _db.GetItemsByConditionAsync<ChatThread>(t => t.UserId == userId)
