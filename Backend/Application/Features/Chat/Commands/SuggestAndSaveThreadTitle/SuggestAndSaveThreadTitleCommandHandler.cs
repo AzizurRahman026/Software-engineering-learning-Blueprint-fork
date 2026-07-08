@@ -1,3 +1,4 @@
+using Application.Common.Ai;
 using Application.Common.Interfaces.Services;
 using Domain.Exceptions;
 using MediatR;
@@ -47,14 +48,21 @@ public class SuggestAndSaveThreadTitleCommandHandler
 
         var llm = _llmFactory.Create(request.Provider);
 
+        // INPUT guard: fence the untrusted user message as DATA so injection attempts
+        // ("ignore previous instructions...") are harder to land. Defense in depth, not a
+        // guarantee — the OUTPUT guard below still assumes the model can be fooled.
+        var fencedFirstMessage =
+            LlmContentGuard.WrapUntrustedContent(Truncate(firstUserMessage, MaxPromptChars));
+
         List<ChatMessage> messages =
         [
             new(ChatRole.System,
                 "You generate short, specific titles for chat conversations. " +
-                "Respond with JSON matching the requested schema only — no prose, no markdown."),
+                "Respond with JSON matching the requested schema only — no prose, no markdown. " +
+                LlmContentGuard.FenceInstruction),
             new(ChatRole.User,
                 $"Create a title (max 6 words, no quotes) and 1-{MaxTopics} lowercase topic tags " +
-                $"for a conversation that begins with:\n\"{Truncate(firstUserMessage, MaxPromptChars)}\"")
+                $"for a conversation that begins with:\n{fencedFirstMessage}")
         ];
 
         ChatResponse<ThreadTitleResult> response;
@@ -71,7 +79,6 @@ public class SuggestAndSaveThreadTitleCommandHandler
         }
 
         // TryGetResult guards malformed JSON (truncated output, prose around the JSON, wrong shape).
-        // Malformed MODEL output is an upstream failure, not the caller's fault → 502, never 400.
         if (!response.TryGetResult(out var result) || string.IsNullOrWhiteSpace(result.Title))
         {
             _logger.LogWarning(
@@ -80,21 +87,19 @@ public class SuggestAndSaveThreadTitleCommandHandler
             throw new LlmUnavailableException("The model returned malformed structured output for the thread title.");
         }
 
-        // Schema conformance is not business validity — enforce our own bounds after parsing.
-        var title = result.Title.Trim().Trim('"');
-        if (title.Length > MaxTitleLength)
-            title = title.Substring(0, MaxTitleLength).Trim() + "…";
+        // OUTPUT guard: parsed != safe. The title renders in the UI (HTML/markdown) and logs,
+        var title = LlmContentGuard.SanitizeDisplayText(result.Title, MaxTitleLength, fallback: "New chat");
 
+        // Topics are model output too and also render in the UI — sanitize each the same way,
+        // then drop any that sanitized to nothing before de-duping.
         var topics = (result.Topics ?? [])
+            .Select(t => LlmContentGuard.SanitizeDisplayText(t, maxLength: 30, fallback: string.Empty).ToLowerInvariant())
             .Where(t => !string.IsNullOrWhiteSpace(t))
-            .Select(t => t.Trim().ToLowerInvariant())
             .Distinct()
             .Take(MaxTopics)
             .ToList();
 
-        // Persist so the title survives reload. The store now does an atomic field-level $set
-        // (ADR 0001), so this write can't clobber a concurrently-saved message. Ownership is
-        // enforced inside the store, so we just pass UserId — a mismatch is a silent no-op there.
+        // Persist so the title survives reload.
         await _historyStore.UpdateThreadTitleAsync(request.ThreadId, request.UserId, title);
 
         return new ThreadTitleDto { Title = title, Topics = topics };
