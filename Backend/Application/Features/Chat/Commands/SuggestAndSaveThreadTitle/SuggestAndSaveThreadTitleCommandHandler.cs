@@ -4,15 +4,17 @@ using MediatR;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
-namespace Application.Features.Chat.Queries.SuggestThreadTitle;
+namespace Application.Features.Chat.Commands.SuggestAndSaveThreadTitle;
 
 /// <summary>
 /// Structured-output pattern: the C# record IS the contract. Microsoft.Extensions.AI's
 /// GetResponseAsync&lt;T&gt; derives a JSON schema from it, instructs the model to answer
 /// with JSON only, and parses the reply back into T. We then validate the parsed value
-/// like any other untrusted input — model output is never trusted blindly.
+/// like any other untrusted input — model output is never trusted blindly. The validated
+/// title is then persisted, which is why this is a Command (see the command doc-comment).
 /// </summary>
-public class SuggestThreadTitleQueryHandler : IRequestHandler<SuggestThreadTitleQuery, ThreadTitleDto>
+public class SuggestAndSaveThreadTitleCommandHandler
+    : IRequestHandler<SuggestAndSaveThreadTitleCommand, ThreadTitleDto>
 {
     /// <summary>The shape the model is forced to produce. Single source of truth for the schema.</summary>
     private sealed record ThreadTitleResult(string Title, List<string>? Topics);
@@ -23,19 +25,19 @@ public class SuggestThreadTitleQueryHandler : IRequestHandler<SuggestThreadTitle
 
     private readonly IChatHistoryStore _historyStore;
     private readonly ILlmFactory _llmFactory;
-    private readonly ILogger<SuggestThreadTitleQueryHandler> _logger;
+    private readonly ILogger<SuggestAndSaveThreadTitleCommandHandler> _logger;
 
-    public SuggestThreadTitleQueryHandler(
+    public SuggestAndSaveThreadTitleCommandHandler(
         IChatHistoryStore historyStore,
         ILlmFactory llmFactory,
-        ILogger<SuggestThreadTitleQueryHandler> logger)
+        ILogger<SuggestAndSaveThreadTitleCommandHandler> logger)
     {
         _historyStore = historyStore;
         _llmFactory = llmFactory;
         _logger = logger;
     }
 
-    public async Task<ThreadTitleDto> Handle(SuggestThreadTitleQuery request, CancellationToken ct)
+    public async Task<ThreadTitleDto> Handle(SuggestAndSaveThreadTitleCommand request, CancellationToken ct)
     {
         var history = await _historyStore.GetHistoryAsync(request.ThreadId);
         var firstUserMessage = history.FirstOrDefault(m => m.Role == ChatRole.User)?.Text;
@@ -90,8 +92,9 @@ public class SuggestThreadTitleQueryHandler : IRequestHandler<SuggestThreadTitle
             .Take(MaxTopics)
             .ToList();
 
-        // Persist so the title survives reload. Ownership is enforced
-        // INSIDE the store, so we just pass UserId — a mismatch is a silent no-op there.
+        // Persist so the title survives reload. The store now does an atomic field-level $set
+        // (ADR 0001), so this write can't clobber a concurrently-saved message. Ownership is
+        // enforced inside the store, so we just pass UserId — a mismatch is a silent no-op there.
         await _historyStore.UpdateThreadTitleAsync(request.ThreadId, request.UserId, title);
 
         return new ThreadTitleDto { Title = title, Topics = topics };

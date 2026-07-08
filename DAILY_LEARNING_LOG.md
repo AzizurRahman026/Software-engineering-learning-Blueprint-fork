@@ -2,6 +2,24 @@
 
 > Tracks additions to the Software Engineering Learning Blueprint project, day by day.
 
+## 2026-07-07 — Thread-title generation promoted from Query to Command (structured LLM output)
+
+**New additions:**
+- `Backend/Application/Features/Chat/Commands/SuggestAndSaveThreadTitle/` (`SuggestAndSaveThreadTitleCommand.cs`, `SuggestAndSaveThreadTitleCommandHandler.cs`) — Asks the LLM for a short thread title + topic tags and persists it. Uses the structured-output pattern: a private C# record (`ThreadTitleResult`) is the schema — `Microsoft.Extensions.AI`'s `GetResponseAsync<T>` derives JSON schema from it, forces JSON-only replies, and parses back into the record. The parsed value is then validated like untrusted input (`MaxTitleLength`, `MaxTopics`), and the prompt input is capped at 500 chars to limit cost and prompt-injection surface. Doc-comments reference `docs/adr/0001-thread-title-command-and-partial-update.md` (ADR not present in the repo yet).
+- `Backend/Application/Features/Chat/Queries/SuggestThreadTitle/` (`SuggestThreadTitleQuery.cs`, `SuggestThreadTitleQueryHandler.cs`) — Tombstone files: each contains only a comment noting the Day 26 removal, because the Day 25 "query" wrote the title as a side effect — a CQRS smell. The logic now lives honestly in the Command above.
+- `.claude/agent-memory/codebase-expert/` — New agent-memory directory for the `codebase-expert` Claude agent (tooling metadata, not application code).
+
+**Maintenance note:** `PROJECT_STRUCTURE.md` was found truncated mid-line (a previous run's write was cut off after the sidebar-component section). The tail — sidebar files, `Shared/Models/notification.model.ts`, `src/environments/` — was restored, and `Playground/LoggerFactoryDemo/` (logged 2026-07-06 but missing from the tree) was added.
+
+**Concepts reinforced today:**
+- CQRS honesty — an operation that mutates state must be a Command even if it "feels like" a read; renaming `SuggestThreadTitle` (Query) to `SuggestAndSaveThreadTitle` (Command) makes the write visible in the type name and keeps Query handlers side-effect-free
+- Structured LLM output — deriving the JSON schema from a C# record makes the record the single source of truth for the model's response contract, replacing fragile string parsing
+- LLM output as untrusted input — model replies are validated (length caps, tag-count caps) exactly like user input before persistence
+- Prompt-injection / cost surface reduction — truncating what is sent to the model (`MaxPromptChars`) bounds both spend and injected-instruction exposure
+- Tombstone files + ADR references — leaving a pointer comment at the old location documents *why* code moved, for future readers and reviewers
+
+---
+
 ## 2026-07-06 — MongoDB explain plans, index startup initializer, and resilient LLM client
 
 **New additions:**

@@ -2,7 +2,7 @@ using Application.Common.Interfaces.Publisher;
 using Application.Common.Interfaces.Services;
 using Application.Features.Chat.Commands;
 using Application.Features.Chat.DTOs;
-using Application.Features.Chat.Queries.SuggestThreadTitle;
+using Application.Features.Chat.Commands.SuggestAndSaveThreadTitle;
 using Application.Tools.DTOs;
 using Domain.Enums;
 using Application.Tools.Queries;
@@ -92,8 +92,8 @@ public class ChatController : ControllerBase
     }
 
     // ── POST /api/chat/threads/{threadId}/suggest-title ──────────────────────
-    // Asks the LLM for a structured { title, topics } suggestion for the thread.
-    // Read-only: the client decides whether to apply it (persisting is a next step).
+    // Asks the LLM for a structured { title, topics } and PERSISTS it. This is a write, so it
+    // dispatches a Command (not a Query) — see ADR 0001.
     [HttpPost("threads/{threadId}/suggest-title")]
     public async Task<IActionResult> SuggestThreadTitle(string threadId, [FromQuery] LlmProvider provider = LlmProvider.Gemini)
     {
@@ -101,8 +101,8 @@ public class ChatController : ControllerBase
         if (userId is null)
             return Unauthorized("Missing X-User-Id header.");
 
-        var query = new SuggestThreadTitleQuery { ThreadId = threadId, UserId = userId, Provider = provider };
-        var result = await _messageBus.SendAsync<SuggestThreadTitleQuery, ThreadTitleDto>(query);
+        var command = new SuggestAndSaveThreadTitleCommand { ThreadId = threadId, UserId = userId, Provider = provider };
+        var result = await _messageBus.SendAsync<SuggestAndSaveThreadTitleCommand, ThreadTitleDto>(command);
         return Ok(result);
     }
 

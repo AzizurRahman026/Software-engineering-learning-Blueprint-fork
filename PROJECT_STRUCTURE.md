@@ -1,10 +1,12 @@
 # Project Structure
 
-> Auto-generated on 2026-07-06
+> Auto-generated on 2026-07-07
 
 ```
 Software-engineering-learning-Blueprint-fork/
 ├── .claude/
+│   ├── agent-memory/
+│   │   └── codebase-expert/
 │   ├── agents/
 │   │   ├── codebase-expert.md
 │   │   └── dev-planner.md
@@ -185,10 +187,17 @@ Software-engineering-learning-Blueprint-fork/
 │   │   │   ├── Chat/
 │   │   │   │   ├── Commands/
 │   │   │   │   │   ├── SendChatCommand.cs
-│   │   │   │   │   └── SendChatCommandHandler.cs
-│   │   │   │   └── DTOs/
-│   │   │   │       ├── ChatRequestDto.cs
-│   │   │   │       └── ChatResponseDto.cs
+│   │   │   │   │   ├── SendChatCommandHandler.cs
+│   │   │   │   │   └── SuggestAndSaveThreadTitle/
+│   │   │   │   │       ├── SuggestAndSaveThreadTitleCommand.cs
+│   │   │   │   │       └── SuggestAndSaveThreadTitleCommandHandler.cs
+│   │   │   │   ├── DTOs/
+│   │   │   │   │   ├── ChatRequestDto.cs
+│   │   │   │   │   └── ChatResponseDto.cs
+│   │   │   │   └── Queries/
+│   │   │   │       └── SuggestThreadTitle/
+│   │   │   │           ├── SuggestThreadTitleQuery.cs          (tombstone — promoted to Command, Day 26)
+│   │   │   │           └── SuggestThreadTitleQueryHandler.cs   (tombstone — promoted to Command, Day 26)
 │   │   │   ├── Courses/
 │   │   │   │   ├── Commands/
 │   │   │   │   │   ├── CreateCourse/
@@ -346,6 +355,9 @@ Software-engineering-learning-Blueprint-fork/
 │               ├── SignupEndpointPersistenceTests.cs
 │               ├── SignupEndpointValidationTests.cs
 │               └── SignupPersistenceTests.cs
+│
+├── Playground/
+│   └── LoggerFactoryDemo/                      (empty — scaffold for logging experiments)
 │
 └── Frontend/
     └── Dashboard/                          (Angular app)
@@ -506,4 +518,12 @@ Software-engineering-learning-Blueprint-fork/
             │       │   │   └── header-component.ts
             │       │   └── sidebar-component/
             │       │       ├── sidebar-component.html
-            │       │       ├── sid
+            │       │       ├── sidebar-component.scss
+            │       │       ├── sidebar-component.spec.ts
+            │       │       └── sidebar-component.ts
+            │       └── Models/
+            │           └── notification.model.ts
+            └── environments/
+                ├── environment.development.ts
+                └── environment.production.ts
+```

@@ -57,10 +57,11 @@ public class MongoChatHistoryStore : IChatHistoryStore
             return; // not found, or not the owner — ownership is enforced HERE, at the store
 
         thread.Title = title;
-        // NOTE: IDatabaseContext is deliberately driver-free and only exposes whole-document
-        // UpdateAsync (replace), not a partial $set. That means a concurrent SaveChatMessageAsync
-        // could interleave; acceptable for a cosmetic title. A true field-level $set would need a
-        // new driver-level method on the abstraction — a cost we don't pay for a title.
+        // NOTE: IDatabaseContext deliberately stays driver-free and only exposes whole-document
+        // UpdateAsync (replace), not a partial $set. A concurrent SaveChatMessageAsync could
+        // interleave and its stale replace could overwrite this title (or vice-versa) — accepted
+        // for a cosmetic title. See ADR 0001: a field-level $set seam was considered and rejected
+        // on the simplicity gate — not worth widening the core persistence port for a title.
         await _db.UpdateAsync(thread);
     }
 
