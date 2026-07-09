@@ -1,0 +1,28 @@
+<div class="subscribe-card">
+  @if (heading()) {
+    <h3 class="subscribe-heading">{{ heading() }}</h3>
+  }
+  @if (description()) {
+    <p class="subscribe-desc">{{ description() }}</p>
+  }
+
+  <form class="subscribe-form" (ngSubmit)="submit()">
+    <input type="email"
+           name="email"
+           class="subscribe-input"
+           [(ngModel)]="email"
+           required
+           placeholder="you@example.com"
+           aria-label="Email address" />
+    <button type="submit" class="subscribe-btn" [disabled]="submitting || !email.trim()">
+      {{ submitting ? 'Subscribing…' : 'Subscribe' }}
+    </button>
+  </form>
+
+  @if (message) {
+    <p class="subscribe-message">{{ message }}</p>
+  }
+  @if (error) {
+    <p class="subscribe-error">{{ error }}</p>
+  }
+</div>

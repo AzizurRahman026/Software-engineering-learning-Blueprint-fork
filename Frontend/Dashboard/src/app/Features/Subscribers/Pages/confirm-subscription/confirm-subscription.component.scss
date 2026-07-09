@@ -1,0 +1,42 @@
+.status-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f8fafc;
+}
+
+.status-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 40px 32px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.status-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+}
+
+.status-msg {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.5;
+
+  &.success { color: #15803d; }
+  &.error { color: #b91c1c; }
+}
+
+.status-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}

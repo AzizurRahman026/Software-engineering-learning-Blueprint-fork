@@ -1,0 +1,57 @@
+.subscribe-card {
+  width: 100%;
+  max-width: 480px;
+}
+
+.subscribe-heading {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.subscribe-desc {
+  margin: 0 0 16px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.subscribe-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.subscribe-input {
+  flex: 1 1 220px;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.subscribe-btn {
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.subscribe-message {
+  margin: 12px 0 0;
+  color: #15803d;
+  font-size: 14px;
+}
+
+.subscribe-error {
+  margin: 12px 0 0;
+  color: #b91c1c;
+  font-size: 14px;
+}

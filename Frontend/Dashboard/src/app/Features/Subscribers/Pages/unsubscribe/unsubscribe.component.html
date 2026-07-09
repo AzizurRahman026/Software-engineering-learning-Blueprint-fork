@@ -1,0 +1,15 @@
+<div class="status-page">
+  <div class="status-card">
+    <h1 class="status-title">Unsubscribe</h1>
+
+    @if (loading) {
+      <p class="status-msg">Processing…</p>
+    } @else if (message) {
+      <p class="status-msg success">{{ message }}</p>
+      <a class="status-btn" routerLink="/">Go to home</a>
+    } @else {
+      <p class="status-msg error">{{ error }}</p>
+      <a class="status-btn" routerLink="/">Go to home</a>
+    }
+  </div>
+</div>
