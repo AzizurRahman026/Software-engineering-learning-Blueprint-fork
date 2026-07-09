@@ -9,10 +9,17 @@ export interface LoginRequest {
   password: string;
 }
 
+export type UserRole = 'User' | 'Admin' | 'SuperAdmin';
+
 export interface AuthResponse {
   userId: string;
   username: string;
   email: string;
+  role: UserRole;
+  // JWT access + refresh tokens. Present on signup/login/refresh; empty on profile responses.
+  token?: string;
+  refreshToken?: string;
+  expiresAt?: string | null;
 }
 
 export interface UpdateProfileRequest {
