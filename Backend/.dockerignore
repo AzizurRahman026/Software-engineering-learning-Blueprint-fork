@@ -1,0 +1,37 @@
+# Keep the build context small and deterministic.
+# Everything here is excluded from `COPY . .`, so it never bloats the context,
+# never busts the layer cache, and stale host build artifacts can't leak into
+# the image (the build recompiles from source inside the SDK stage).
+
+# .NET build outputs (rebuilt in-container)
+**/bin/
+**/obj/
+**/out/
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Source control & CI
+.git/
+.gitignore
+.github/
+
+# Docker files themselves
+**/Dockerfile
+**/.dockerignore
+docker-compose*.yml
+
+# Local secrets / env (never bake these into an image)
+**/appsettings.Development.json
+**/*.env
+.env
+
+# Test projects are not needed to publish the API
+Tests/
+
+# Misc
+**/*.md
