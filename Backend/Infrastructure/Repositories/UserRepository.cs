@@ -40,4 +40,9 @@ public class UserRepository : Repository, IUserRepository
     {
         return DbContext.GetItemByConditionAsync<User>(u => u.PasswordResetTokenHash == tokenHash);
     }
+
+    public Task<User?> GetByRefreshTokenHashAsync(string tokenHash)
+    {
+        return DbContext.GetItemByConditionAsync<User>(u => u.RefreshTokenHash == tokenHash);
+    }
 }

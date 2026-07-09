@@ -1,16 +1,21 @@
+using System.Text;
 using API.Extensions;
 using API.MiddleWare;
+using Application.Common.Interfaces.Security;
 using Application.Common.Interfaces.Services;
 using Application.Settings;
 using Infrastructure.Chat;
 using Infrastructure.Configuration;
 using Infrastructure.Llm;
 using Infrastructure.MCP;
+using Infrastructure.Security;
 using Infrastructure.Services;
 using Infrastructure.SignalR.Hubs;
 using Infrastructure.SignalR.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +41,15 @@ builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection("
 builder.Services.Configure<PasswordResetOptions>(builder.Configuration.GetSection("Auth:PasswordReset"));
 // Expose PasswordResetOptions as a plain value so the Application-layer handler needn't depend on IOptions.
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<PasswordResetOptions>>().Value);
+
+// Super-admin bootstrap: the email here is elevated to SuperAdmin on signup/login.
+builder.Services.Configure<SuperAdminOptions>(builder.Configuration.GetSection("Auth:SuperAdmin"));
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<SuperAdminOptions>>().Value);
+
+// JWT: options + token generator. Key must be supplied (Jwt__Key env var in production).
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<JwtOptions>>().Value);
+builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
 builder.Services.AddHttpClient<IEmailSender, BrevoEmailSender>();
 
 builder.Services.AddSingleton<IChatHistoryStore, MongoChatHistoryStore>();
@@ -64,8 +78,28 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+
+// JWT bearer authentication. The signing key is required — fail fast if it's missing.
+var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions();
+if (string.IsNullOrWhiteSpace(jwtOptions.Key))
+    throw new InvalidOperationException("Jwt:Key is not configured. Set the Jwt__Key environment variable.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30)
+        };
+    });
 builder.Services.AddAuthorization();
-builder.Services.AddAuthentication();
 
 // Register the background service
 // builder.Services.AddHostedService<HeartbitTestJob>();

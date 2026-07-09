@@ -42,6 +42,10 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>, IAsyncLife
         {
             ["MongoSettings:ConnectionString"] = _mongo.GetConnectionString(),
             ["MongoSettings:DatabaseName"] = "itest",
+            // JWT signing key so the host boots (startup fails fast without one).
+            ["Jwt:Issuer"] = "BlueprintApi",
+            ["Jwt:Audience"] = "BlueprintClient",
+            ["Jwt:Key"] = "integration-test-signing-key-0123456789-abcdef",
         }));
     }
 }

@@ -1,7 +1,10 @@
 ﻿using Application.Common.Interfaces.Repositories;
 using Application.Common.Interfaces.Security;
+using Application.Common.Security;
 using Application.Features.Auth.DTOs;
+using Application.Settings;
 using Domain.Entities;
+using Domain.Enums;
 using Domain.Exceptions;
 using Domain.ValueObjects;
 using MediatR;
@@ -14,17 +17,26 @@ public class SignupCommandHandler : IRequestHandler<SignupCommand, AuthResponseD
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthValidator _authValidator;
+    private readonly IJwtTokenGenerator _tokenGenerator;
+    private readonly JwtOptions _jwtOptions;
+    private readonly SuperAdminOptions _superAdmin;
     private readonly ILogger<SignupCommandHandler> _logger;
 
     public SignupCommandHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         IAuthValidator authValidator,
+        IJwtTokenGenerator tokenGenerator,
+        JwtOptions jwtOptions,
+        SuperAdminOptions superAdmin,
         ILogger<SignupCommandHandler> logger)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _authValidator = authValidator;
+        _tokenGenerator = tokenGenerator;
+        _jwtOptions = jwtOptions;
+        _superAdmin = superAdmin;
         _logger = logger;
     }
 
@@ -61,11 +73,22 @@ public class SignupCommandHandler : IRequestHandler<SignupCommand, AuthResponseD
         // Creation invariants now live in the Domain entity, not here.
         var user = User.Register(normalizedUsername, Email.Create(normalizedEmail), hash, salt);
 
+        // Bootstrap: the configured super-admin email is elevated on first registration.
+        if (IsSuperAdminEmail(normalizedEmail))
+            user.AssignRole(UserRole.SuperAdmin);
+
+        // Mint tokens (stamps the refresh-token hash on the user) before the single persist.
+        var response = AuthTokenIssuer.Issue(_tokenGenerator, _jwtOptions, user);
+
         var added = await _userRepository.AddAsync(user);
         if (!added)
             throw new UnknownException("Failed to register user.");
 
         _logger.LogInformation("User registered successfully with {UserId}", user.Id);
-        return AuthResponseDto.FromUser(user);
+        return response;
     }
+
+    private bool IsSuperAdminEmail(string normalizedEmail) =>
+        !string.IsNullOrWhiteSpace(_superAdmin.Email) &&
+        string.Equals(_superAdmin.Email.Trim(), normalizedEmail, StringComparison.OrdinalIgnoreCase);
 }

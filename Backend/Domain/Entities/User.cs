@@ -1,4 +1,5 @@
 ﻿using Domain.Common;
+using Domain.Enums;
 using Domain.Events;
 using Domain.Exceptions;
 using Domain.ValueObjects;
@@ -14,6 +15,13 @@ public class User : AggregateRoot
     public string PasswordSalt { get; private set; } = string.Empty;
     public string? PasswordResetTokenHash { get; private set; }
     public DateTime? PasswordResetTokenExpiresAt { get; private set; }
+
+    // SHA-256 hash of the active refresh token (the raw token lives only on the client). One active session.
+    public string? RefreshTokenHash { get; private set; }
+    public DateTime? RefreshTokenExpiresAt { get; private set; }
+
+    // Authorization role. Everyone registers as a plain User; a SuperAdmin promotes to Admin.
+    public UserRole Role { get; private set; } = UserRole.User;
 
 
     private User() { }
@@ -43,6 +51,31 @@ public class User : AggregateRoot
         user.RaiseDomainEvent(new UserRegisteredEvent(user.Id, user.Username, user.Email.Value));
         return user;
     }
+
+    /// <summary>Sets the authorization role. Only a SuperAdmin should invoke this (enforced in the handler).</summary>
+    public void AssignRole(UserRole role) => Role = role;
+
+    /// <summary>Stores the hash + expiry of a newly issued refresh token (replaces any prior session).</summary>
+    public void SetRefreshToken(string tokenHash, DateTime expiresAt)
+    {
+        if (string.IsNullOrWhiteSpace(tokenHash))
+            throw new ValidationException("Refresh token hash is required.");
+        RefreshTokenHash = tokenHash;
+        RefreshTokenExpiresAt = expiresAt;
+    }
+
+    /// <summary>Revokes the active refresh token (logout).</summary>
+    public void ClearRefreshToken()
+    {
+        RefreshTokenHash = null;
+        RefreshTokenExpiresAt = null;
+    }
+
+    /// <summary>True when a stored refresh-token hash matches and hasn't expired.</summary>
+    public bool IsRefreshTokenValid(string tokenHash, DateTime nowUtc) =>
+        !string.IsNullOrEmpty(RefreshTokenHash)
+        && RefreshTokenHash == tokenHash
+        && RefreshTokenExpiresAt is { } exp && exp > nowUtc;
 
     /// <summary>Changes the username, applying the same normalization + invariant as Register.</summary>
     public void Rename(string username)

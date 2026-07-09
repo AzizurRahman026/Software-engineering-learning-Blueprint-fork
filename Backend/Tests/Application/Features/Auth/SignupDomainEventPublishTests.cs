@@ -1,6 +1,7 @@
 ﻿using Application.Common.Interfaces.Repositories;
 using Application.Common.Interfaces.Security;
 using Application.Features.Auth.Commands.Signup;
+using Application.Settings;
 using Domain.Entities;
 using Domain.Events;
 using Microsoft.Extensions.Logging;
@@ -44,6 +45,7 @@ public class SignupDomainEventPublishTests
 
         var handler = new SignupCommandHandler(
             userRepo, hasher, validator,
+            new SuperAdminOptions(),
             Substitute.For<ILogger<SignupCommandHandler>>());
 
         return (handler, persisted);

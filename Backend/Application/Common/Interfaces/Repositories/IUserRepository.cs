@@ -10,4 +10,5 @@ public interface IUserRepository : IRepository
     Task<User?> GetByUsernameAsync(string username);
     Task<User?> GetByEmailOrUsernameAsync(string emailOrUsername);
     Task<User?> GetByPasswordResetTokenHashAsync(string tokenHash);
+    Task<User?> GetByRefreshTokenHashAsync(string tokenHash);
 }

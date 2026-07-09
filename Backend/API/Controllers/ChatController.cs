@@ -6,17 +6,18 @@ using Application.Features.Chat.Commands.SuggestAndSaveThreadTitle;
 using Application.Tools.DTOs;
 using Domain.Enums;
 using Application.Tools.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
+using System.Security.Claims;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize] // All chat endpoints require an authenticated user.
 public class ChatController : ControllerBase
 {
-    private const string UserIdHeader = "X-User-Id";
-
     private readonly IMessageBus _messageBus;
     private readonly IChatHistoryStore _historyStore;
 
@@ -27,11 +28,8 @@ public class ChatController : ControllerBase
         _historyStore = chatHistoryStore;
     }
 
-    // Reads the logged-in user's id from the X-User-Id header (set by the Angular interceptor).
-    private string? GetUserId() =>
-        Request.Headers.TryGetValue(UserIdHeader, out var value) && !string.IsNullOrWhiteSpace(value)
-            ? value.ToString()
-            : null;
+    // The authenticated user's id from the JWT 'sub' claim.
+    private string? GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     // ── POST /api/chat ───────────────────────────────────────────────────────
     // Request:  { "query": "What is the weather in London?", "provider": "Gemini" }
