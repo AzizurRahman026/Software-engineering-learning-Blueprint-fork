@@ -9,7 +9,8 @@ import {
   MessageResponse,
   ResetPasswordRequest,
   SignupRequest,
-  UpdateProfileRequest
+  UpdateProfileRequest,
+  UserRole
 } from '../Models/auth.model';
 
 const STORAGE_KEY = 'auth_user';
@@ -45,6 +46,32 @@ export class AuthService {
     );
   }
 
+  // SuperAdmin only (enforced server-side); assigns User/Admin to a user by id.
+  assignRole(userId: string, role: UserRole): Observable<AuthResponse> {
+    return this.http.put<AuthResponse>(`${this.apiUrl}/users/${userId}/role`, { role });
+  }
+
+  // Exchanges the stored refresh token for a fresh access + refresh token.
+  refresh(): Observable<AuthResponse> {
+    const refreshToken = this.currentUser()?.refreshToken ?? '';
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, { refreshToken }).pipe(
+      tap((user) => this.persistUser(user))
+    );
+  }
+
+  getToken(): string | null {
+    return this.currentUser()?.token ?? null;
+  }
+
+  isAdmin(): boolean {
+    const role = this.currentUser()?.role;
+    return role === 'Admin' || role === 'SuperAdmin';
+  }
+
+  isSuperAdmin(): boolean {
+    return this.currentUser()?.role === 'SuperAdmin';
+  }
+
   forgotPassword(payload: ForgotPasswordRequest): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.apiUrl}/forgot-password`, payload);
   }
@@ -54,17 +81,30 @@ export class AuthService {
   }
 
   logout(): void {
+    // Best-effort server-side revocation of the refresh token; clear locally regardless.
+    if (this.currentUser()?.token) {
+      this.http.post(`${this.apiUrl}/logout`, {}).subscribe({ next: () => {}, error: () => {} });
+    }
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(STORAGE_KEY);
     }
     this.currentUser.set(null);
   }
 
+  // Merges the response into stored state. Responses without tokens (profile reads/updates)
+  // preserve the existing token/refreshToken so the session isn't lost.
   private persistUser(user: AuthResponse): void {
+    const existing = this.currentUser();
+    const merged: AuthResponse = {
+      ...user,
+      token: user.token || existing?.token || '',
+      refreshToken: user.refreshToken || existing?.refreshToken || '',
+      expiresAt: user.expiresAt ?? existing?.expiresAt ?? null
+    };
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
     }
-    this.currentUser.set(user);
+    this.currentUser.set(merged);
   }
 
   private static loadFromStorage(): AuthResponse | null {

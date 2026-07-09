@@ -1,0 +1,98 @@
+<div class="admin-container">
+  <h1 class="admin-title">Admin</h1>
+
+  <nav class="admin-tabs">
+    <button [class.active]="tab === 'moderation'" (click)="setTab('moderation')">Moderation</button>
+    <button [class.active]="tab === 'subscribers'" (click)="setTab('subscribers')">Subscribers</button>
+    @if (authService.isSuperAdmin()) {
+      <button [class.active]="tab === 'roles'" (click)="setTab('roles')">Roles</button>
+    }
+  </nav>
+
+  <!-- Moderation -->
+  @if (tab === 'moderation') {
+    <section class="admin-section">
+      <h2>Pending posts</h2>
+
+      @if (pendingError) {
+        <div class="error-banner">{{ pendingError }}</div>
+      }
+      @if (pendingLoading) {
+        <p class="muted">Loading…</p>
+      }
+
+      @for (post of pending; track post.id) {
+        <div class="pending-row">
+          <div class="pending-info">
+            <a class="pending-title" [routerLink]="['/posts', post.id]">{{ post.title }}</a>
+            <span class="pending-meta">by {{ post.authorUsername }} · {{ post.createdAt | date:'medium' }}</span>
+            <p class="pending-summary">{{ post.summary }}</p>
+          </div>
+          <div class="pending-actions">
+            <button class="btn btn-primary" (click)="publish(post)">Publish</button>
+            <button class="btn btn-danger" (click)="requestReject(post)">Reject</button>
+          </div>
+        </div>
+      } @empty {
+        @if (!pendingLoading) {
+          <p class="muted">No posts awaiting review. 🎉</p>
+        }
+      }
+    </section>
+  }
+
+  <!-- Subscribers -->
+  @if (tab === 'subscribers') {
+    <section class="admin-section">
+      <h2>Subscribers ({{ subscribers.length }})</h2>
+      <table class="admin-table">
+        <thead>
+          <tr><th>Email</th><th>Status</th><th>Subscribed</th><th>Confirmed</th></tr>
+        </thead>
+        <tbody>
+          @for (sub of subscribers; track sub.id) {
+            <tr>
+              <td>{{ sub.email }}</td>
+              <td><span class="pill" [attr.data-status]="sub.status">{{ sub.status }}</span></td>
+              <td>{{ sub.subscribedAt | date:'mediumDate' }}</td>
+              <td>{{ sub.confirmedAt ? (sub.confirmedAt | date:'mediumDate') : '—' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="muted">No subscribers yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  <!-- Roles -->
+  @if (tab === 'roles' && authService.isSuperAdmin()) {
+    <section class="admin-section">
+      <h2>Assign role</h2>
+      <p class="muted">Enter a user's id and pick a role. (Find ids on the Subscribers/users list or from the user.)</p>
+
+      <form class="role-form" (ngSubmit)="assignRole()">
+        <input type="text" name="roleUserId" class="form-control" [(ngModel)]="roleUserId" placeholder="User id" />
+        <select name="roleValue" class="form-control" [(ngModel)]="roleValue">
+          <option value="Admin">Admin</option>
+          <option value="User">User</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Assign</button>
+      </form>
+
+      @if (roleMessage) { <p class="success-msg">{{ roleMessage }}</p> }
+      @if (roleError) { <p class="error-banner">{{ roleError }}</p> }
+    </section>
+  }
+</div>
+
+<app-confirm-dialog
+    [isOpen]="rejectTarget !== null"
+    title="Reject this post?"
+    message="The author's post will be hidden from the public feed."
+    confirmLabel="Reject"
+    cancelLabel="Cancel"
+    variant="danger"
+    (confirmed)="confirmReject()"
+    (cancelled)="cancelReject()">
+</app-confirm-dialog>
