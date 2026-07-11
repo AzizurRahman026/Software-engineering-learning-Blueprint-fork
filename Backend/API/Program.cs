@@ -7,6 +7,7 @@ using Application.Common.Interfaces.Services;
 using Application.Settings;
 using Infrastructure.Chat;
 using Infrastructure.Configuration;
+using Infrastructure.Extensions;
 using Infrastructure.Llm;
 using Infrastructure.MCP;
 using Infrastructure.Security;
@@ -30,6 +31,9 @@ builder.Services.AddConfigurationSettings(builder.Configuration);
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddMediatRAndMasstransit();
+
+// MassTransit bus + consumers (RabbitMQ transport, or in-memory when no broker is configured).
+builder.Services.AddMessaging(builder.Configuration);
 
 
 // mcp configuration and services
