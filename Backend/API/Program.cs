@@ -2,6 +2,7 @@ using System.Text;
 using API.Extensions;
 using API.MiddleWare;
 using Application.Common.Interfaces.Security;
+using Application.Common.Security;
 using Application.Common.Interfaces.Services;
 using Application.Settings;
 using Infrastructure.Chat;
@@ -50,6 +51,7 @@ builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<SuperAdminOpt
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<JwtOptions>>().Value);
 builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+builder.Services.AddSingleton<IAuthTokenIssuer, AuthTokenIssuer>();
 builder.Services.AddHttpClient<IEmailSender, BrevoEmailSender>();
 
 builder.Services.AddSingleton<IChatHistoryStore, MongoChatHistoryStore>();

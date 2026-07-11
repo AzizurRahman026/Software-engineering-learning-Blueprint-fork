@@ -1,5 +1,6 @@
 ﻿using Application.Common.Interfaces.Repositories;
 using Application.Common.Interfaces.Security;
+using Application.Common.Security;
 using Application.Features.Auth.Commands.Signup;
 using Application.Settings;
 using Domain.Entities;
@@ -43,8 +44,16 @@ public class SignupDomainEventPublishTests
         validator.IsValidEmail(Arg.Any<string>()).Returns(true);
         // ValidatePassword is void and throws on failure - leaving it as a no-op = passes.
 
+        var tokenGenerator = Substitute.For<IJwtTokenGenerator>();
+        tokenGenerator.GenerateAccessToken(Arg.Any<User>())
+            .Returns(new AccessTokenResult("access-token", DateTime.UtcNow.AddMinutes(60)));
+        // Use the real issuer over a mocked generator so AuthResponseDto.FromUser runs for
+        // real and response.UserId lines up with the persisted aggregate's id.
+        var tokenIssuer = new AuthTokenIssuer(tokenGenerator, new JwtOptions());
+
         var handler = new SignupCommandHandler(
             userRepo, hasher, validator,
+            tokenIssuer,
             new SuperAdminOptions(),
             Substitute.For<ILogger<SignupCommandHandler>>());
 
