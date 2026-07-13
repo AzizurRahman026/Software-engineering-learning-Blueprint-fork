@@ -25,6 +25,11 @@ export class PostService {
     return this.http.get<PostSummary[]>(`${this.apiUrl}?page=${page}&pageSize=${pageSize}`);
   }
 
+  // The signed-in author's own posts (any status: Pending/Published/Rejected).
+  getMyPosts(page = 1, pageSize = 10): Observable<PostSummary[]> {
+    return this.http.get<PostSummary[]>(`${this.apiUrl}/mine?page=${page}&pageSize=${pageSize}`);
+  }
+
   // Admin: pending posts awaiting moderation (X-User-Id attached by the interceptor).
   getPending(): Observable<PostSummary[]> {
     return this.http.get<PostSummary[]>(`${this.apiUrl}/pending`);

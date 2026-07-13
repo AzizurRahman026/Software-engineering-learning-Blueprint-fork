@@ -25,6 +25,10 @@ export const DashboardRoutes: Routes = [
         loadComponent: () => import('../Posts/Components/post-form/post-form').then(o => o.PostFormComponent)
     },
     {
+        path: 'posts/mine',
+        loadComponent: () => import('../Posts/Components/my-posts/my-posts').then(o => o.MyPostsComponent)
+    },
+    {
         path: 'posts/:id/edit',
         loadComponent: () => import('../Posts/Components/post-form/post-form').then(o => o.PostFormComponent)
     },

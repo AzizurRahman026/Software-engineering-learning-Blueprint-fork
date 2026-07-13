@@ -1,0 +1,29 @@
+<div class="post-container">
+  <header class="post-header">
+    <div>
+      <h2>My posts</h2>
+      <p class="subtitle">Everything you've written — including posts still pending review.</p>
+    </div>
+    <button class="btn btn-primary" (click)="startCreate()">Write a post</button>
+  </header>
+
+  @if (error) {
+    <div class="error-banner">{{ error }}</div>
+  }
+
+  @if (loading) {
+    <div class="empty-state"><p>Loading your posts…</p></div>
+  }
+
+  <div class="post-grid">
+    @for (post of posts; track post.id) {
+      <app-post-card [post]="post" (open)="openPost($event)" />
+    }
+  </div>
+
+  @if (!posts.length && !loading) {
+    <div class="empty-state">
+      <p>You haven't written any posts yet. Share your first one!</p>
+    </div>
+  }
+</div>

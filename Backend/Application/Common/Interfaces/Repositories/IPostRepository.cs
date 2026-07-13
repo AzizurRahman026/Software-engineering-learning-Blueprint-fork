@@ -10,4 +10,7 @@ public interface IPostRepository : IRepository
 
     // Moderation queue: Pending posts, oldest first (first-in reviewed first).
     Task<List<Post>> GetPendingAsync();
+
+    // Author dashboard: all of one author's posts (any status), newest first.
+    Task<List<Post>> GetByAuthorAsync(string authorId, int pageNumber, int pageSize);
 }
