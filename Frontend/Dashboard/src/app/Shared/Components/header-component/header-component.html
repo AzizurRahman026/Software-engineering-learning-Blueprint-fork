@@ -10,6 +10,7 @@
   <nav class="main-nav">
     <a class="tech-link" routerLink="/posts">Posts</a>
     @if (authService.currentUser()) {
+      <a class="tech-link" routerLink="/posts/mine">My Posts</a>
       <a class="tech-link" routerLink="/posts/create">Write</a>
     }
     @if (authService.isAdmin()) {

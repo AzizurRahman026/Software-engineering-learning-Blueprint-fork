@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+// Neutral, shared namespace: this contract belongs to neither the server
+// (AiWorker) nor the client (Infrastructure) — both reference Contracts.
+option csharp_namespace = "Contracts.Grpc";
+
+package add;
+
+// The contract: language-neutral service definition. Grpc.Tools generates
+// the C# server base (CalculatorBase) and client (CalculatorClient) from this
+// at build time (GrpcServices="Both" in Contracts.csproj).
+service Calculator {
+	// A function called "Add" that takes AddRequest, returns AddReply
+  rpc Add (AddRequest) returns (AddReply);
+}
+
+// The two numbers we send IN
+message AddRequest {
+  int32 a = 1;
+  int32 b = 2;
+}
+
+// The answer we get BACK
+message AddReply {
+  int32 sum = 1;
+}

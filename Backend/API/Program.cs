@@ -41,6 +41,9 @@ builder.Services.Configure<McpServerOptions>(builder.Configuration.GetSection("M
 builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("GeminiOptions"));
 builder.Services.Configure<ClaudeOptions>(builder.Configuration.GetSection("ClaudeOptions"));
 
+// AiWorker gRPC service endpoint (learning exercise: signup calls its Add function).
+builder.Services.Configure<AiWorkerOptions>(builder.Configuration.GetSection("AiWorker"));
+
 // Password recovery: Brevo email transport + reset-token settings.
 builder.Services.Configure<BrevoEmailOptions>(builder.Configuration.GetSection("BrevoEmail"));
 builder.Services.Configure<PasswordResetOptions>(builder.Configuration.GetSection("Auth:PasswordReset"));

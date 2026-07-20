@@ -33,7 +33,9 @@ export class UnsubscribeComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.loading = false;
-        this.error = err.error?.message ?? 'This unsubscribe link is invalid.';
+        // Backend errors are RFC 7807 ProblemDetails (`detail`); fall back for other shapes.
+        this.error = err.error?.detail ?? err.error?.message
+          ?? 'This unsubscribe link is invalid.';
       }
     });
   }

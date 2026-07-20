@@ -8,6 +8,7 @@ using Application.Features.Posts.Commands.RejectPost;
 using Application.Features.Posts.Commands.ToggleLike;
 using Application.Features.Posts.Commands.UpdatePost;
 using Application.Features.Posts.DTOs;
+using Application.Features.Posts.Queries.GetMyPosts;
 using Application.Features.Posts.Queries.GetPendingPosts;
 using Application.Features.Posts.Queries.GetPostById;
 using Application.Features.Posts.Queries.GetPosts;
@@ -49,6 +50,21 @@ public class PostsController : ApiControllerBase
         var query = new GetPostByIdQuery { Id = id, UserId = GetUserId() };
         var post = await _messageBus.SendAsync<GetPostByIdQuery, PostDetailDto>(query);
         return Ok(post);
+    }
+
+    // ── GET /api/posts/mine — the caller's own posts (any status) ─────────────
+    [HttpGet("mine")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<List<PostSummaryDto>>> GetMine([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var userId = GetUserId();
+        if (userId is null)
+            return Unauthorized("Missing X-User-Id header.");
+
+        var posts = await _messageBus.SendAsync<GetMyPostsQuery, List<PostSummaryDto>>(
+            new GetMyPostsQuery { AuthorId = userId, Page = page, PageSize = pageSize });
+        return Ok(posts);
     }
 
     // ── POST /api/posts — create (requires login) ─────────────────────────────

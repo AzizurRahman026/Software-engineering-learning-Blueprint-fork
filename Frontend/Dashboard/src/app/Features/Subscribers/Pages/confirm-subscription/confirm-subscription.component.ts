@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { SubscriberService } from '../../Services/subscriber.service';
@@ -12,6 +12,7 @@ import { SubscriberService } from '../../Services/subscriber.service';
 })
 export class ConfirmSubscriptionComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly changedectector = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
   private readonly subscriberService = inject(SubscriberService);
 
@@ -31,10 +32,14 @@ export class ConfirmSubscriptionComponent implements OnInit {
       next: (res) => {
         this.loading = false;
         this.message = res?.message ?? 'Your subscription is confirmed.';
+        this.changedectector.detectChanges();
       },
       error: (err: HttpErrorResponse) => {
         this.loading = false;
-        this.error = err.error?.message ?? 'This confirmation link is invalid or has expired.';
+        // Backend errors are RFC 7807 ProblemDetails (`detail`); fall back for other shapes.
+        this.error = err.error?.detail ?? err.error?.message
+          ?? 'This confirmation link is invalid or has expired.';
+        this.changedectector.detectChanges();
       }
     });
   }

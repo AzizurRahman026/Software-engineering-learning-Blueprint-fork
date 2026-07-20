@@ -41,3 +41,11 @@ export interface ResetPasswordRequest {
 export interface MessageResponse {
   message: string;
 }
+
+// Safe user projection returned by the admin user-list (no tokens/hashes).
+export interface UserSummary {
+  id: string;
+  username: string;
+  email: string;
+  role: UserRole;
+}

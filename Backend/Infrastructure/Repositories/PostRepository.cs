@@ -32,4 +32,16 @@ public class PostRepository : Repository, IPostRepository
             .OrderBy(p => p.CreatedAt)
             .ToList();
     }
+
+    public Task<List<Post>> GetByAuthorAsync(string authorId, int pageNumber, int pageSize)
+    {
+        // Author dashboard: every post the author owns, regardless of status.
+        // Ordered by CreatedAt (not PublishedAt, which is null for pending/rejected posts).
+        return DbContext.GetPagedResponseAsync<Post>(
+            criteria: p => p.AuthorId == authorId,
+            pageNumber: pageNumber,
+            pageSize: pageSize,
+            orderBy: p => p.CreatedAt,
+            ascending: false);
+    }
 }

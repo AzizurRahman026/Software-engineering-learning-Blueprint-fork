@@ -6,6 +6,7 @@ using Application.Common.Interfaces.Security;
 using Application.Common.Interfaces.Services;
 using Application.Common.Security;
 using Domain.Repositories.Base;
+using Infrastructure.Grpc;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Indexing;
 using Infrastructure.Repositories;
@@ -69,6 +70,9 @@ public static class ServiceCollectionExtensions
         // Auth / security services
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<IAuthValidator, AuthValidator>();
+
+        // Outbound gRPC client to the AiWorker service (singleton: reuses one channel).
+        services.AddSingleton<IAiWorkerClient, AiWorkerGrpcClient>();
 
         return services;
     }

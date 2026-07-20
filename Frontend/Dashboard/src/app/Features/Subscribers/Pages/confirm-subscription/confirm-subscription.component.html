@@ -1,14 +1,30 @@
 <div class="status-page">
-  <div class="status-card">
+  <div class="status-card" [class.is-loading]="loading" [class.is-success]="!loading && message" [class.is-error]="!loading && !message">
+    <div class="status-glow" aria-hidden="true"></div>
+
+    <div class="status-icon" aria-hidden="true">
+      @if (loading) {
+        <span class="spinner"></span>
+      } @else if (message) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      }
+    </div>
+
     <h1 class="status-title">Newsletter subscription</h1>
 
     @if (loading) {
-      <p class="status-msg">Confirming your subscription…</p>
+      <p class="status-msg" role="status" aria-live="polite">Confirming your subscription…</p>
     } @else if (message) {
-      <p class="status-msg success">{{ message }}</p>
+      <p class="status-msg success" role="status" aria-live="polite">{{ message }}</p>
       <a class="status-btn" routerLink="/">Go to home</a>
     } @else {
-      <p class="status-msg error">{{ error }}</p>
+      <p class="status-msg error" role="alert" aria-live="assertive">{{ error }}</p>
       <a class="status-btn" routerLink="/">Go to home</a>
     }
   </div>

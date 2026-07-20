@@ -9,6 +9,7 @@ using Application.Features.Auth.Commands.Signup;
 using Application.Features.Auth.Commands.UpdateProfile;
 using Application.Features.Auth.DTOs;
 using Application.Features.Auth.Queries.GetUserById;
+using Application.Features.Auth.Queries.GetUsers;
 using Application.Features.Auth.Queries.Login;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -95,6 +96,21 @@ public class AuthController : ApiControllerBase
     {
         var response = await _messageBus.SendAsync<ResetPasswordCommand, MessageResponseDto>(request.ToResetPasswordCommand());
         return Ok(response);
+    }
+
+    /// <summary>List users for role management. SuperAdmin only. Optional case-insensitive search over username/email.</summary>
+    [HttpGet("users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<List<UserSummaryDto>>> GetUsers([FromQuery] string? search)
+    {
+        var actingUserId = GetUserId();
+        if (actingUserId is null)
+            return Unauthorized();
+
+        var users = await _messageBus.SendAsync<GetUsersQuery, List<UserSummaryDto>>(
+            new GetUsersQuery { ActingUserId = actingUserId, Search = search });
+        return Ok(users);
     }
 
     /// <summary>Get a user's profile by id.</summary>

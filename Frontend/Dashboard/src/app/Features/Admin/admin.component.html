@@ -69,19 +69,52 @@
   @if (tab === 'roles' && authService.isSuperAdmin()) {
     <section class="admin-section">
       <h2>Assign role</h2>
-      <p class="muted">Enter a user's id and pick a role. (Find ids on the Subscribers/users list or from the user.)</p>
+      <p class="muted">Search for a user, pick a role, and assign — no need to look up ids.</p>
 
-      <form class="role-form" (ngSubmit)="assignRole()">
-        <input type="text" name="roleUserId" class="form-control" [(ngModel)]="roleUserId" placeholder="User id" />
-        <select name="roleValue" class="form-control" [(ngModel)]="roleValue">
-          <option value="Admin">Admin</option>
-          <option value="User">User</option>
-        </select>
-        <button type="submit" class="btn btn-primary">Assign</button>
-      </form>
+      <input
+        type="search"
+        name="userSearch"
+        class="form-control role-search"
+        [(ngModel)]="userSearch"
+        placeholder="Search by username or email…" />
 
       @if (roleMessage) { <p class="success-msg">{{ roleMessage }}</p> }
       @if (roleError) { <p class="error-banner">{{ roleError }}</p> }
+
+      @if (usersLoading) {
+        <p class="muted">Loading users…</p>
+      } @else {
+        <table class="admin-table">
+          <thead>
+            <tr><th>Username</th><th>Email</th><th>Current role</th><th>Change to</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (u of filteredUsers; track u.id) {
+              <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td><span class="pill" [attr.data-role]="u.role">{{ u.role }}</span></td>
+                <td>
+                  <select class="form-control" [(ngModel)]="roleSelection[u.id]" [name]="'role-' + u.id">
+                    <option value="Admin">Admin</option>
+                    <option value="User">User</option>
+                  </select>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-primary"
+                    (click)="assignRole(u)"
+                    [disabled]="assigningId === u.id || roleSelection[u.id] === u.role">
+                    {{ assigningId === u.id ? 'Saving…' : 'Assign' }}
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="muted">No users match your search.</td></tr>
+            }
+          </tbody>
+        </table>
+      }
     </section>
   }
 </div>

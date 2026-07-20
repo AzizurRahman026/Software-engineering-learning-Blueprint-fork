@@ -21,4 +21,15 @@ public static class RoleGuard
         if (user is null || user.Role is not (UserRole.Admin or UserRole.SuperAdmin))
             throw new AuthenticationException("Admin privileges required.");
     }
+
+    /// <summary>Throws <see cref="AuthenticationException"/> unless the acting user is a SuperAdmin.</summary>
+    public static async Task EnsureSuperAdminAsync(IUserRepository userRepository, string actingUserId)
+    {
+        if (string.IsNullOrWhiteSpace(actingUserId))
+            throw new AuthenticationException("Authentication required.");
+
+        var user = await userRepository.GetByIdAsync<User>(actingUserId);
+        if (user is null || user.Role != UserRole.SuperAdmin)
+            throw new AuthenticationException("Super admin privileges required.");
+    }
 }

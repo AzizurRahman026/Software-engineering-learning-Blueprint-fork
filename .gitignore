@@ -10,6 +10,7 @@
 **/appsettings.Development.json
 **/appsettings.Production.json
 **/appsettings.Test.json
+**/*.slnx
 
 # ======================
 # Frontend (Angular)

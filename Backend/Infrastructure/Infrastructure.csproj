@@ -10,6 +10,9 @@
     <PackageReference Include="Anthropic.SDK" Version="5.10.0" />
     <PackageReference Include="Google_GenerativeAI" Version="3.6.4" />
     <PackageReference Include="Google_GenerativeAI.Microsoft" Version="3.6.4" />
+    <!-- Client transport only. The gRPC contract (adder.proto) + generated
+         client stub come from Contracts; Google.Protobuf flows transitively. -->
+    <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageReference Include="MassTransit" Version="8.3.0" />
     <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.0" />
     <PackageReference Include="Microsoft.Extensions.AI" Version="10.4.1" />
@@ -24,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
+    <ProjectReference Include="..\Contracts\Contracts.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 

@@ -10,7 +10,8 @@ import {
   ResetPasswordRequest,
   SignupRequest,
   UpdateProfileRequest,
-  UserRole
+  UserRole,
+  UserSummary
 } from '../Models/auth.model';
 
 const STORAGE_KEY = 'auth_user';
@@ -44,6 +45,12 @@ export class AuthService {
     return this.http.put<AuthResponse>(`${this.apiUrl}/users/${userId}`, payload).pipe(
       tap((user) => this.persistUser(user))
     );
+  }
+
+  // SuperAdmin only (enforced server-side); lists users for the role-management picker.
+  getUsers(search?: string): Observable<UserSummary[]> {
+    const query = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : '';
+    return this.http.get<UserSummary[]>(`${this.apiUrl}/users${query}`);
   }
 
   // SuperAdmin only (enforced server-side); assigns User/Admin to a user by id.
