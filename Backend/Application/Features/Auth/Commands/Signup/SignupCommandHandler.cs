@@ -81,6 +81,7 @@ public class SignupCommandHandler : IRequestHandler<SignupCommand, AuthResponseD
             throw new UnknownException("Failed to register user.");
 
         _logger.LogInformation("User registered successfully with {UserId}", user.Id);
+
         return response;
     }
 

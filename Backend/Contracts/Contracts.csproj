@@ -10,4 +10,25 @@
     <PackageReference Include="MediatR" Version="14.0.0" />
   </ItemGroup>
 
+  <!--
+    Shared gRPC contract. Contracts is the leaf shared kernel, so it owns the
+    single .proto (source of truth) and generates BOTH the client stub and the
+    server base. AiWorker (server) and Infrastructure (client) each reference
+    Contracts — never each other. Grpc.Core.Api is the minimal runtime both
+    generated stubs derive from; Grpc.Tools is build-only (codegen) and does
+    not flow to consumers.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.30.2" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.71.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\adder.proto" GrpcServices="Both" />
+  </ItemGroup>
+
 </Project>
